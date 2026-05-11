@@ -1,0 +1,58 @@
+# ==========================================
+# 1. Go Specifics
+# ==========================================
+# Compiled object files, binaries, and test files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+
+# Dependency directories (we use go modules, so we don't commit vendor)
+vendor/
+
+# ==========================================
+# 2. Windows Specifics
+# ==========================================
+# Windows image file caches
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# ==========================================
+# 3. IDEs and Editors
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*~
+
+# ==========================================
+# 4. DFS Project Specifics (CRITICAL)
+# ==========================================
+# Ignore the Master Node's local memory state file
+master_state.json
+
+# Ignore the Worker Nodes' local hard drives (prevent committing 64MB chunks!)
+data/
+worker_1_data/
+worker_2_data/
+worker_3_data/
+worker*_data/
