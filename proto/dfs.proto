@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package dfs;
+option go_package = "./pb";
+
+// ==========================================
+// COMMON MESSAGES (Used by multiple services)
+// ==========================================
+
+// A generic response for operations that just need to say "Success" or "Error"
+message StandardResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+// Represents a list of Worker Node IP addresses
+message NodeList {
+    repeated string worker_ips = 1;
+}
+
+// The raw bytes for streaming 64MB files
+message ChunkData {
+    string chunk_id = 1;
+    bytes data = 2;
+}
+
+// ==========================================
+// MASTER NODE MESSAGES
+// ==========================================
+
+message CreateFileRequest {
+    string file_path = 1;
+    int64 file_size = 2;
+}
+
+message CreateFileResponse {
+    // Maps a ChunkID (e.g., "chunk-123") to a list of Worker IPs (e.g., ["192.168.1.5:8001", "192.168.1.6:8002"])
+    map<string, NodeList> chunk_locations = 1;
+}
+
+message CommitFileRequest {
+    string file_path = 1;
+}
+
+message GetFileRequest {
+    string file_path = 1;
+}
+
+message GetFileResponse {
+    map<string, NodeList> chunk_locations = 1;
+}
+
+message HeartbeatMsg {
+    string node_id = 1;
+    string address = 2;
+    int64 disk_usage = 3;
+    int64 disk_capacity = 4;
+    repeated string stored_chunk_ids = 5; // The Master uses this to verify the Worker hasn't lost data
+}
+
+// ==========================================
+// WORKER NODE MESSAGES
+// ==========================================
+
+message RetrieveChunkRequest {
+    string chunk_id = 1;
+}
+
+// ==========================================
+// SERVICES (The RPC Verbs)
+// ==========================================
+
+// The API exposed by the Master Node
+service MasterService {
+    rpc CreateFile(CreateFileRequest) returns (CreateFileResponse);
+    rpc CommitFile(CommitFileRequest) returns (StandardResponse); // Call this AFTER Client uploads chunks
+    rpc GetFileLocations(GetFileRequest) returns (GetFileResponse);
+    rpc SendHeartbeat(HeartbeatMsg) returns (StandardResponse);
+}
+
+// The API exposed by the Worker Node
+service WorkerService {
+    // Client streams chunks TO the Worker
+    rpc StoreChunk(stream ChunkData) returns (StandardResponse);
+
+    // Client streams chunks FROM the Worker
+    rpc RetrieveChunk(RetrieveChunkRequest) returns (stream ChunkData);
+}
