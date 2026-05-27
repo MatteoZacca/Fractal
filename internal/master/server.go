@@ -95,5 +95,24 @@ func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*
 	return &pb.CreateFileResponse{
 		ChunkLocations: blueprint,
 	}, nil
+}
+
+// Client -> NameNode
+func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*pb.StandardResponse, error) {
+	n.Metadata.mu.Lock()
+	defer n.Metadata.mu.Unlock()
+
+	n.Metadata.Files[req.FilePath] = req.ChunkIds
+
+	for chunkID, nodeIDs := range req.ChunkLocations {
+		n.Metadata.ChunkLocations[chunkID] = nodeIDs.WorkerIps
+	}
+
+	err := n.Metadata.SaveToDisk("namespace.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to save metadata to disk: %v", err)
+	}
+
+	return &pb.StandardResponse{Success: true}, nil
 
 }
