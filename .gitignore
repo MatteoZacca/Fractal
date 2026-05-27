@@ -45,14 +45,10 @@ $RECYCLE.BIN/
 *~
 
 # ==========================================
-# 4. DFS Project Specifics (CRITICAL)
+# 4. Distributed File System Specifics
 # ==========================================
-# Ignore the Master Node's local memory state file
-master_state.json
+# Ignore the NameNode's local memory state file
+namespace.json
 
-# Ignore the Worker Nodes' local hard drives (prevent committing 64MB chunks!)
+# Ignore the DataNodes' local hard drives
 data/
-worker_1_data/
-worker_2_data/
-worker_3_data/
-worker*_data/
