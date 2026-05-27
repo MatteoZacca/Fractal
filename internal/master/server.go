@@ -8,16 +8,20 @@ import (
 	"github.com/MatteoZacca/distributed-file-system/pb"
 )
 
+// Master
 type NameNode struct {
 	pb.UnimplementedMasterServiceServer
 	Metadata *MetadataStore
 }
 
-func (s *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb.StandardResponse, error) {
-	s.Metadata.mu.Lock()
-	defer s.Metadata.mu.Unlock()
+const replicationFactor = 3
 
-	s.Metadata.DataNodes[req.NodeId] = &DataNode{
+// DataNode -> NameNode
+func (n *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb.StandardResponse, error) {
+	n.Metadata.mu.Lock()
+	defer n.Metadata.mu.Unlock()
+
+	n.Metadata.DataNodes[req.NodeId] = &DataNode{
 		NodeID:        req.NodeId,
 		Address:       req.Address,
 		RackID:        "rack-1", // hardcoded for now until HDFS logic is implemented
@@ -27,12 +31,13 @@ func (s *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb
 	return &pb.StandardResponse{Success: true}, nil
 }
 
-func (s *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest) (*pb.GetFileResponse, error) {
+// Client -> NameNode
+func (n *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest) (*pb.GetFileResponse, error) {
 	// Multiple clients can read the notebook at the exact same time safely
-	s.Metadata.mu.RLock()
-	defer s.Metadata.mu.RUnlock()
+	n.Metadata.mu.RLock()
+	defer n.Metadata.mu.RUnlock()
 
-	chunkIDs, exists := s.Metadata.Files[req.FilePath]
+	chunkIDs, exists := n.Metadata.Files[req.FilePath]
 	if !exists {
 		return nil, fmt.Errorf("file %s not found in the system", req.FilePath)
 	}
@@ -40,11 +45,11 @@ func (s *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest)
 	responseMap := make(map[string]*pb.NodeList)
 
 	for _, chunkID := range chunkIDs {
-		dataNodesIDs := s.Metadata.ChunkLocations[chunkID]
+		dataNodesIDs := n.Metadata.ChunkLocations[chunkID]
 		var dataNodeIPs []string
 
 		for _, nodeID := range dataNodesIDs {
-			if dataNodeInfo, isOnline := s.Metadata.DataNodes[nodeID]; isOnline {
+			if dataNodeInfo, isOnline := n.Metadata.DataNodes[nodeID]; isOnline {
 				dataNodeIPs = append(dataNodeIPs, dataNodeInfo.Address)
 			}
 		}
@@ -55,4 +60,40 @@ func (s *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest)
 	return &pb.GetFileResponse{
 		ChunkLocations: responseMap,
 	}, nil
+}
+
+// Client -> NomeNode
+func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*pb.CreateFileResponse, error) {
+	var totalChunks int = int(req.FileSize / ChunkSize)
+	if req.FileSize%ChunkSize != 0 {
+		totalChunks++
+	}
+
+	// 3. Create the empty blueprint to hand back to the Client
+	blueprint := make(map[string]*pb.NodeList)
+
+	for i := 0; i < totalChunks; i++ {
+		// Generate a unique ID (e.g., "thesis.pdf-chunk-0")
+		chunkID := fmt.Sprintf("%s-chunk-%d", req.FilePath, i)
+
+		// Ask our Allocator logic for 2 healthy workers
+		dataNodeIDs, err := n.Metadata.AllocateDataNodes(replicationFactor)
+		if err != nil {
+			return nil, err // Fails the whole upload if the cluster is unhealthy
+		}
+
+		n.Metadata.mu.RLock()
+		var dataNodeIPs []string
+		for _, nodeID := range dataNodeIDs {
+			dataNodeIPs = append(dataNodeIPs, n.Metadata.DataNodes[nodeID].Address)
+		}
+		n.Metadata.mu.RUnlock()
+
+		blueprint[chunkID] = &pb.NodeList{WorkerIps: dataNodeIPs}
+	}
+	// 5. Hand the blueprint to the Client
+	return &pb.CreateFileResponse{
+		ChunkLocations: blueprint,
+	}, nil
+
 }

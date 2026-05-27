@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Worker
 type DataNode struct {
 	NodeID        string    `json:"node_id"`
 	Address       string    `json:"address"`
