@@ -47,7 +47,7 @@ func (m *MetadataStore) SaveToDisk(filePath string) error {
 	// Write the bytes to the hard drive
 	err = os.WriteFile(filePath, data, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to write metadata to disk: &v", err)
+		return fmt.Errorf("failed to write metadata to disk: %v", err)
 	}
 	return nil
 }
