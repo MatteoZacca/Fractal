@@ -270,10 +270,12 @@ func (x *CreateFileResponse) GetChunkLocations() map[string]*NodeList {
 }
 
 type CommitFileRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FilePath      string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	FilePath       string                 `protobuf:"bytes,1,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	ChunkIds       []string               `protobuf:"bytes,2,rep,name=chunk_ids,json=chunkIds,proto3" json:"chunk_ids,omitempty"`
+	ChunkLocations map[string]*NodeList   `protobuf:"bytes,3,rep,name=chunk_locations,json=chunkLocations,proto3" json:"chunk_locations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CommitFileRequest) Reset() {
@@ -311,6 +313,20 @@ func (x *CommitFileRequest) GetFilePath() string {
 		return x.FilePath
 	}
 	return ""
+}
+
+func (x *CommitFileRequest) GetChunkIds() []string {
+	if x != nil {
+		return x.ChunkIds
+	}
+	return nil
+}
+
+func (x *CommitFileRequest) GetChunkLocations() map[string]*NodeList {
+	if x != nil {
+		return x.ChunkLocations
+	}
+	return nil
 }
 
 type GetFileRequest struct {
@@ -542,9 +558,14 @@ const file_proto_dfs_proto_rawDesc = "" +
 	"\x0fchunk_locations\x18\x01 \x03(\v2+.dfs.CreateFileResponse.ChunkLocationsEntryR\x0echunkLocations\x1aP\n" +
 	"\x13ChunkLocationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12#\n" +
-	"\x05value\x18\x02 \x01(\v2\r.dfs.NodeListR\x05value:\x028\x01\"0\n" +
+	"\x05value\x18\x02 \x01(\v2\r.dfs.NodeListR\x05value:\x028\x01\"\xf4\x01\n" +
 	"\x11CommitFileRequest\x12\x1b\n" +
-	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"-\n" +
+	"\tfile_path\x18\x01 \x01(\tR\bfilePath\x12\x1b\n" +
+	"\tchunk_ids\x18\x02 \x03(\tR\bchunkIds\x12S\n" +
+	"\x0fchunk_locations\x18\x03 \x03(\v2*.dfs.CommitFileRequest.ChunkLocationsEntryR\x0echunkLocations\x1aP\n" +
+	"\x13ChunkLocationsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12#\n" +
+	"\x05value\x18\x02 \x01(\v2\r.dfs.NodeListR\x05value:\x028\x01\"-\n" +
 	"\x0eGetFileRequest\x12\x1b\n" +
 	"\tfile_path\x18\x01 \x01(\tR\bfilePath\"\xb6\x01\n" +
 	"\x0fGetFileResponse\x12Q\n" +
@@ -585,7 +606,7 @@ func file_proto_dfs_proto_rawDescGZIP() []byte {
 	return file_proto_dfs_proto_rawDescData
 }
 
-var file_proto_dfs_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_dfs_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_dfs_proto_goTypes = []any{
 	(*StandardResponse)(nil),     // 0: dfs.StandardResponse
 	(*NodeList)(nil),             // 1: dfs.NodeList
@@ -598,30 +619,33 @@ var file_proto_dfs_proto_goTypes = []any{
 	(*HeartbeatMsg)(nil),         // 8: dfs.HeartbeatMsg
 	(*RetrieveChunkRequest)(nil), // 9: dfs.RetrieveChunkRequest
 	nil,                          // 10: dfs.CreateFileResponse.ChunkLocationsEntry
-	nil,                          // 11: dfs.GetFileResponse.ChunkLocationsEntry
+	nil,                          // 11: dfs.CommitFileRequest.ChunkLocationsEntry
+	nil,                          // 12: dfs.GetFileResponse.ChunkLocationsEntry
 }
 var file_proto_dfs_proto_depIdxs = []int32{
 	10, // 0: dfs.CreateFileResponse.chunk_locations:type_name -> dfs.CreateFileResponse.ChunkLocationsEntry
-	11, // 1: dfs.GetFileResponse.chunk_locations:type_name -> dfs.GetFileResponse.ChunkLocationsEntry
-	1,  // 2: dfs.CreateFileResponse.ChunkLocationsEntry.value:type_name -> dfs.NodeList
-	1,  // 3: dfs.GetFileResponse.ChunkLocationsEntry.value:type_name -> dfs.NodeList
-	3,  // 4: dfs.MasterService.CreateFile:input_type -> dfs.CreateFileRequest
-	5,  // 5: dfs.MasterService.CommitFile:input_type -> dfs.CommitFileRequest
-	6,  // 6: dfs.MasterService.GetFileLocations:input_type -> dfs.GetFileRequest
-	8,  // 7: dfs.MasterService.SendHeartbeat:input_type -> dfs.HeartbeatMsg
-	2,  // 8: dfs.WorkerService.StoreChunk:input_type -> dfs.ChunkData
-	9,  // 9: dfs.WorkerService.RetrieveChunk:input_type -> dfs.RetrieveChunkRequest
-	4,  // 10: dfs.MasterService.CreateFile:output_type -> dfs.CreateFileResponse
-	0,  // 11: dfs.MasterService.CommitFile:output_type -> dfs.StandardResponse
-	7,  // 12: dfs.MasterService.GetFileLocations:output_type -> dfs.GetFileResponse
-	0,  // 13: dfs.MasterService.SendHeartbeat:output_type -> dfs.StandardResponse
-	0,  // 14: dfs.WorkerService.StoreChunk:output_type -> dfs.StandardResponse
-	2,  // 15: dfs.WorkerService.RetrieveChunk:output_type -> dfs.ChunkData
-	10, // [10:16] is the sub-list for method output_type
-	4,  // [4:10] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	11, // 1: dfs.CommitFileRequest.chunk_locations:type_name -> dfs.CommitFileRequest.ChunkLocationsEntry
+	12, // 2: dfs.GetFileResponse.chunk_locations:type_name -> dfs.GetFileResponse.ChunkLocationsEntry
+	1,  // 3: dfs.CreateFileResponse.ChunkLocationsEntry.value:type_name -> dfs.NodeList
+	1,  // 4: dfs.CommitFileRequest.ChunkLocationsEntry.value:type_name -> dfs.NodeList
+	1,  // 5: dfs.GetFileResponse.ChunkLocationsEntry.value:type_name -> dfs.NodeList
+	3,  // 6: dfs.MasterService.CreateFile:input_type -> dfs.CreateFileRequest
+	5,  // 7: dfs.MasterService.CommitFile:input_type -> dfs.CommitFileRequest
+	6,  // 8: dfs.MasterService.GetFileLocations:input_type -> dfs.GetFileRequest
+	8,  // 9: dfs.MasterService.SendHeartbeat:input_type -> dfs.HeartbeatMsg
+	2,  // 10: dfs.WorkerService.StoreChunk:input_type -> dfs.ChunkData
+	9,  // 11: dfs.WorkerService.RetrieveChunk:input_type -> dfs.RetrieveChunkRequest
+	4,  // 12: dfs.MasterService.CreateFile:output_type -> dfs.CreateFileResponse
+	0,  // 13: dfs.MasterService.CommitFile:output_type -> dfs.StandardResponse
+	7,  // 14: dfs.MasterService.GetFileLocations:output_type -> dfs.GetFileResponse
+	0,  // 15: dfs.MasterService.SendHeartbeat:output_type -> dfs.StandardResponse
+	0,  // 16: dfs.WorkerService.StoreChunk:output_type -> dfs.StandardResponse
+	2,  // 17: dfs.WorkerService.RetrieveChunk:output_type -> dfs.ChunkData
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_dfs_proto_init() }
@@ -635,7 +659,7 @@ func file_proto_dfs_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_dfs_proto_rawDesc), len(file_proto_dfs_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

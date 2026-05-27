@@ -40,6 +40,8 @@ message CreateFileResponse {
 
 message CommitFileRequest {
     string file_path = 1;
+    repeated string chunk_ids = 2;
+    map<string, NodeList> chunk_locations = 3;
 }
 
 message GetFileRequest {
