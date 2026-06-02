@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 
 	"github.com/MatteoZacca/distributed-file-system/internal/master"
 	"github.com/MatteoZacca/distributed-file-system/pb"
@@ -10,7 +11,12 @@ import (
 )
 
 func main() {
-	masterPort := ":9000"
+	port := os.Getenv("MASTER_PORT")
+	if port == "" {
+		port = ":9000"
+	}
+	masterPort := ":" + port
+
 	metadataFile := "namespace.json"
 
 	leader := master.NewMetadataStore()
