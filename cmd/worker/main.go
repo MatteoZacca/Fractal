@@ -15,12 +15,35 @@ import (
 )
 
 func main() {
-	workerID := "datanode-1"
-	workerPort := ":8001"
-	masterAddress := "localhost:9000"
-	dataDir := "./data/datanode_1"
 
-	if err := os.MkdirAll(dataDir, 0755); err != nil {
+	nodeID := os.Getenv("NODE_ID")
+	if nodeID == "" {
+		nodeID = "datanode-1"
+	}
+
+	port := os.Getenv("DATANODE_PORT")
+	if port == "" {
+		port = "8001"
+	}
+	dataNodePort := ":" + port
+
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		dataDir = "./data/datanode_1"
+	}
+
+	nameNodeAddress := os.Getenv("NAMENODE_ADDRESS")
+	if nameNodeAddress == "" {
+		nameNodeAddress = "localhost:9000"
+	}
+
+	rackID := os.Getenv("RACK_ID")
+	if rackID == "" {
+		rackID = "rack-default"
+	}
+
+	err := os.MkdirAll(dataDir, 0755)
+	if err != nil {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}
 
@@ -29,17 +52,17 @@ func main() {
 	// (Listening for CLI Clients)
 	// ==========================================
 
-	listener, err := net.Listen("tcp", workerPort) // 1 -> TCP socket: you always need a network port to listen on
+	listener, err := net.Listen("tcp", dataNodePort) // 1 -> TCP socket: you always need a network port to listen on
 	if err != nil {
-		log.Fatalf("Failed to listen on %s: %v", workerPort, err)
+		log.Fatalf("Failed to listen on %s: %v", dataNodePort, err)
 	}
 
-	grpcServer := grpc.NewServer()       // 2 -> Empty server: ask the gRPC library to give you a blank server
-	workerLogic := &worker.WorkerServer{ // 3 -> Registration: attach your logic to the blank server
-		NodeId:  workerID,
+	grpcServer := grpc.NewServer()         // 2 -> Empty server: ask the gRPC library to give you a blank server
+	dataNodeLogic := &worker.WorkerServer{ // 3 -> Registration: attach your logic to the blank server
+		NodeId:  nodeID,
 		DataDir: dataDir,
 	}
-	pb.RegisterWorkerServiceServer(grpcServer, workerLogic)
+	pb.RegisterWorkerServiceServer(grpcServer, dataNodeLogic)
 
 	// ==========================================
 	// PART B: THE WORKER AS A CLIENT
@@ -47,24 +70,22 @@ func main() {
 	// ==========================================
 
 	// 5. Create a Client Connection to the Master Node
-	conn, err := grpc.NewClient(masterAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	masterConnection, err := grpc.NewClient(nameNodeAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Failed to create client connection to master: %v", err)
+		log.Fatalf("Failed to connect to NameNode: %v", err)
 	}
-	defer conn.Close()
+	defer masterConnection.Close()
 
 	// 6. Create a client object that knows how to speak the Master's language
-	masterClient := pb.NewMasterServiceClient(conn)
+	masterClient := pb.NewMasterServiceClient(masterConnection)
 
-	// 7. Launch the Heartbeat in a background Goroutine!
-	// (If we didn't use 'go' here, the program would get stuck in the heartbeat loop forever)
-	go startHeartbeat(masterClient, workerID, "localhost"+workerPort)
+	dataNodeAddress := nodeID + ":" + port
+	go startHeartbeat(masterClient, nodeID, dataNodeAddress, nameNodeAddress, rackID)
 
 	// ==========================================
 	// PART C: START LISTENING
 	// ==========================================
-
-	log.Printf("--> Worker [%s] starting on port %s... saving data to %s", workerID, workerPort, dataDir)
+	log.Printf("--> Worker [%s] starting on port %s... saving data to %s", nodeID, dataNodePort, dataDir)
 
 	// 8. This line blocks the program from exiting. It sits here waiting for incoming traffic.
 	if err := grpcServer.Serve(listener); err != nil {
@@ -72,7 +93,7 @@ func main() {
 	}
 }
 
-func startHeartbeat(client pb.MasterServiceClient, nodeID string, address string) {
+func startHeartbeat(client pb.MasterServiceClient, nodeID string, dataNodeAddress string, nameNodeAddress string, rackID string) {
 	ticker := time.NewTicker(5 * time.Second)
 
 	for {
@@ -81,14 +102,14 @@ func startHeartbeat(client pb.MasterServiceClient, nodeID string, address string
 		// Call the Master's 'SendHeartbeat' RPC Verb
 		_, err := client.SendHeartbeat(context.Background(), &pb.HeartbeatMsg{
 			NodeId:         nodeID,
-			Address:        address,
+			Address:        dataNodeAddress,
 			DiskUsage:      0,          // TODO: We will calculate this later
 			DiskCapacity:   1000000000, // Fake 1GB capacity for now
 			StoredChunkIds: []string{}, // TODO: We will scan the folder for these later
 		})
 
 		if err != nil {
-			log.Printf("Warning: Failed to reach Master at localhost:9000 -> %v", err)
+			log.Printf("Warning: Failed to reach Master at %s -> %v", nameNodeAddress, err)
 		} else {
 			log.Printf("Heartbeat successfully sent to Master.")
 		}
