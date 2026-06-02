@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -39,4 +40,17 @@ func main() {
 	}
 	defer masterConnection.Close()
 	masterClient := pb.NewMasterServiceClient(masterConnection)
+
+	log.Println("Requesting blueprint from NameNode...")
+	createFileResponse, err := masterClient.CreateFile(context.Background(), &pb.CreateFileRequest{
+		FilePath: fileName,
+		FileSize: fileSize,
+	})
+	if err != nil {
+		log.Fatalf("NameNode rejected upload: %v", err)
+	}
+
+	chunksMapping := createFileResponse.ChunkLocations
+	log.Printf("Blueprint received! File split into %d chunks.", len(chunksMapping))
+
 }
