@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # THE MASTER NODE
+  namenode:
+    build: 
+      context: .
+    image: dfs-base-image
+    command: ["./namenode"]
+    container_name: namenode
+    ports:
+      - "9000:9000"
+    environment:
+      - MASTER_PORT=9000
+    volumes:
+      - namenode_data:/app/data
+    networks:
+      - dfs-network
+
+  # ==========================================
+  # RACK A: DATANODES 1 & 2
+  # ==========================================
+  datanode-1:
+    image: dfs-base-image
+    command: ["./datanode"]
+    container_name: datanode-1
+    depends_on:
+      - namenode
+    ports:
+      - "8001:8001"
+    environment:
+      - NODE_ID=datanode-1
+      - DATANODE_PORT=8001
+      - DATA_DIR=/app/data/datanode-1
+      - NAMENODE_ADDRESS=namenode:9000
+      - RACK_ID=rack-A
+    volumes:
+      - datanode1_data:/app/data/datanode-1
+    networks:
+      - dfs-network
+
+  datanode-2:
+    image: dfs-base-image
+    command: ["./datanode"]
+    container_name: datanode-2
+    depends_on:
+      - namenode
+    ports:
+      - "8002:8002"
+    environment:
+      - NODE_ID=datanode-2
+      - DATANODE_PORT=8002
+      - DATA_DIR=/app/data/datanode-2
+      - NAMENODE_ADDRESS=namenode:9000
+      - RACK_ID=rack-A
+    volumes:
+      - datanode2_data:/app/data/datanode-2
+    networks:
+      - dfs-network
+  
+  # ==========================================
+  # RACK B: DATANODES 3 & 4
+  # ==========================================
+  datanode-3:
+    image: dfs-base-image
+    command: ["./datanode"]
+    container_name: datanode-3
+    depends_on:
+      - namenode
+    ports:
+      - "8003:8003"
+    environment:
+      - NODE_ID=datanode-3
+      - DATANODE_PORT=8003
+      - DATA_DIR=/app/data/datanode-3
+      - NAMENODE_ADDRESS=namenode:9000
+      - RACK_ID=rack-B
+    volumes:
+      - datanode3_data:/app/data/datanode-3
+    networks:
+      - dfs-network
+
+  datanode-4:
+    image: dfs-base-image
+    command: ["./datanode"]
+    container_name: datanode-4
+    depends_on:
+      - namenode
+    ports:
+      - "8004:8004"
+    environment:
+      - NODE_ID=datanode-4
+      - DATANODE_PORT=8004
+      - DATA_DIR=/app/data/datanode-4
+      - NAMENODE_ADDRESS=namenode:9000
+      - RACK_ID=rack-B
+    volumes:
+      - datanode4_data:/app/data/datanode-4
+    networks:
+      - dfs-network
+
+# ==========================================
+# INFRASTRUCTURE SETUP
+# ==========================================
+# Definition of isolated Docker volumes so the data survives even if containers are destroyed
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  datanode3_data:
+  datanode4_data:
+
+# Creation of a custom virtual network so the containers can resolve names like "namenode"
+networks:
+  dfs-network:
+    driver: bridge
