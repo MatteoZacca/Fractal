@@ -39,9 +39,7 @@ func main() {
 
 	log.Printf("Starting upload for '%s' (size: %d bytes)", fileName, fileSize)
 
-	// ==========================================
-	// Talk to the NameNode
-	// ==========================================
+	// 1. Talk to the NameNode
 
 	// Connect to the NameNode
 	masterConnection, err := grpc.NewClient("localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -64,9 +62,7 @@ func main() {
 	chunksMapping := createFileResponse.ChunkLocations
 	log.Printf("Blueprint received! File split into %d chunks.", len(chunksMapping))
 
-	// ==========================================
-	// Talk to the DataNodes
-	// ==========================================
+	// 2. Talk to the DataNodes
 
 	var chunkIDs []string
 
@@ -83,6 +79,18 @@ func main() {
 		}
 	}
 
+	// 3. Commit the file
+	log.Println("All chunks uploaded successfully! Committing to NameNode...")
+	_, err = masterClient.CommitFile(context.Background(), &pb.CommitFileRequest{
+		FilePath:       fileName,
+		ChunkIds:       chunkIDs,
+		ChunkLocations: chunksMapping,
+	})
+	if err != nil {
+		log.Fatalf("Failed to commit file to NameNode: %v", err)
+	}
+
+	log.Printf("Success! File %s is now safely stored in the Distributed File System", fileName)
 }
 
 func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) error {
