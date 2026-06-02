@@ -424,6 +424,7 @@ type HeartbeatMsg struct {
 	DiskUsage      int64                  `protobuf:"varint,3,opt,name=disk_usage,json=diskUsage,proto3" json:"disk_usage,omitempty"`
 	DiskCapacity   int64                  `protobuf:"varint,4,opt,name=disk_capacity,json=diskCapacity,proto3" json:"disk_capacity,omitempty"`
 	StoredChunkIds []string               `protobuf:"bytes,5,rep,name=stored_chunk_ids,json=storedChunkIds,proto3" json:"stored_chunk_ids,omitempty"` // The Master uses this to verify the Worker hasn't lost data
+	RackId         string                 `protobuf:"bytes,6,opt,name=rack_id,json=rackId,proto3" json:"rack_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -491,6 +492,13 @@ func (x *HeartbeatMsg) GetStoredChunkIds() []string {
 		return x.StoredChunkIds
 	}
 	return nil
+}
+
+func (x *HeartbeatMsg) GetRackId() string {
+	if x != nil {
+		return x.RackId
+	}
+	return ""
 }
 
 type RetrieveChunkRequest struct {
@@ -572,14 +580,15 @@ const file_proto_dfs_proto_rawDesc = "" +
 	"\x0fchunk_locations\x18\x01 \x03(\v2(.dfs.GetFileResponse.ChunkLocationsEntryR\x0echunkLocations\x1aP\n" +
 	"\x13ChunkLocationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12#\n" +
-	"\x05value\x18\x02 \x01(\v2\r.dfs.NodeListR\x05value:\x028\x01\"\xaf\x01\n" +
+	"\x05value\x18\x02 \x01(\v2\r.dfs.NodeListR\x05value:\x028\x01\"\xc8\x01\n" +
 	"\fHeartbeatMsg\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12\x1d\n" +
 	"\n" +
 	"disk_usage\x18\x03 \x01(\x03R\tdiskUsage\x12#\n" +
 	"\rdisk_capacity\x18\x04 \x01(\x03R\fdiskCapacity\x12(\n" +
-	"\x10stored_chunk_ids\x18\x05 \x03(\tR\x0estoredChunkIds\"1\n" +
+	"\x10stored_chunk_ids\x18\x05 \x03(\tR\x0estoredChunkIds\x12\x17\n" +
+	"\arack_id\x18\x06 \x01(\tR\x06rackId\"1\n" +
 	"\x14RetrieveChunkRequest\x12\x19\n" +
 	"\bchunk_id\x18\x01 \x01(\tR\achunkId2\x85\x02\n" +
 	"\rMasterService\x12=\n" +

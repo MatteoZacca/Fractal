@@ -58,6 +58,7 @@ message HeartbeatMsg {
     int64 disk_usage = 3;
     int64 disk_capacity = 4;
     repeated string stored_chunk_ids = 5; // The Master uses this to verify the Worker hasn't lost data
+    string rack_id = 6;
 }
 
 // ==========================================
