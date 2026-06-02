@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,6 +12,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+const ChunkSize = 64 * 1024 * 1024 // 64MB
+const StreamChunkSize = 64 * 1024  // 64KB
 
 func main() {
 
@@ -81,5 +86,51 @@ func main() {
 }
 
 func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) error {
+	// Connect to DataNode
+	conn, err := grpc.NewClient(dataNodeIP, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return fmt.Errorf("failed to connect to DataNode at %s: %v", dataNodeIP, err)
+	}
+	defer conn.Close()
 
+	dataNodeClient := pb.NewWorkerServiceClient(conn)
+
+	// Open a gRPC Stream
+	stream, err := dataNodeClient.StoreChunk(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed  to open stream: %v", err)
+	}
+
+	// Read the file in 64KB chunks and stream them
+	buffer := make([]byte, StreamChunkSize)
+	var bytesSent int64 = 0
+
+	for bytesSent < ChunkSize {
+		bytesRead, err := file.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error reading file: %v", err)
+		}
+
+		// Send the chunk over  the network
+		err = stream.Send(&pb.ChunkData{
+			ChunkId: chunkID,
+			Data:    buffer[:bytesRead],
+		})
+		if err != nil {
+			return fmt.Errorf("error sending data trough stream: %v", err)
+		}
+
+		bytesSent += int64(bytesRead)
+	}
+
+	// Tell the DataNode we're done sending this chunk
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		return fmt.Errorf("DataNode returned an error after streaming: %v", err)
+	}
+
+	return nil
 }
