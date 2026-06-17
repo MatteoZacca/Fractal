@@ -22,7 +22,7 @@ vendor/
 # ==========================================
 # 2. Windows
 # ==========================================
-# WWindows thumbnail cache files
+# Windows thumbnail cache files
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
