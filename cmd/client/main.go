@@ -7,14 +7,23 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/MatteoZacca/distributed-file-system/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const ChunkSize = 64 * 1024 * 1024 // 64MB
-const StreamChunkSize = 64 * 1024  // 64KB
+const StorageChunkSize = 64 * 1024 * 1024 // 64MB
+const StreamChunkSize = 64 * 1024         // 64KB
+
+func resolveLocalAddress(dockerAddress string) string {
+	parts := strings.Split(dockerAddress, ":")
+	if len(parts) == 2 {
+		return "localhost:" + parts[1]
+	}
+	return dockerAddress
+}
 
 func main() {
 
@@ -70,9 +79,10 @@ func main() {
 		chunkIDs = append(chunkIDs, chunkID)
 
 		for _, dataNodeIP := range nodeList.WorkerIps {
+			reachableAddress := resolveLocalAddress(dataNodeIP)
 			log.Printf("Streaming %s to DataNode at %s...", chunkID, dataNodeIP)
+			err := uploadChunkToDataNode(file, chunkID, reachableAddress)
 
-			err := uploadChunkToDataNode(file, chunkID, dataNodeIP)
 			if err != nil {
 				log.Fatalf("Failed to upload %s to %s: %v", chunkID, dataNodeIP, err)
 			}
@@ -113,7 +123,7 @@ func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) err
 	buffer := make([]byte, StreamChunkSize)
 	var bytesSent int64 = 0
 
-	for bytesSent < ChunkSize {
+	for bytesSent < StorageChunkSize {
 		bytesRead, err := file.Read(buffer)
 		if err == io.EOF {
 			break
