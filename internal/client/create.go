@@ -59,18 +59,26 @@ var createCmd = &cobra.Command{
 
 		// Stream to DataNodes
 		var chunkIDs []string
+		var currentChunkIndex int64 = 0
+
 		for chunkID, nodeList := range res.ChunkLocations {
 			chunkIDs = append(chunkIDs, chunkID)
+			startOffset := currentChunkIndex * StorageChunkSize
 
 			for _, dataNodeIP := range nodeList.WorkerIps {
 				log.Printf("Streaming %s to DataNode at %s...", chunkID, resolveLocalAddress(dataNodeIP))
 
-				file.Seek(0, io.SeekStart)
+				_, err := file.Seek(startOffset, io.SeekStart)
+				if err != nil {
+					log.Fatalf("Failed to seek file playhead: %v", err)
+				}
 
 				if err := uploadChunkToDataNode(file, chunkID, dataNodeIP); err != nil {
 					log.Fatalf("Failed to upload to %s: %v", dataNodeIP, err)
 				}
 			}
+
+			currentChunkIndex++
 		}
 
 		// Commit the file
