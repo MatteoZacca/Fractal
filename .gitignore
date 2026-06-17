@@ -1,5 +1,5 @@
 # ==========================================
-# 1. Go Specifics
+# 1. Go
 # ==========================================
 bin/
 
@@ -20,7 +20,7 @@ bin/
 vendor/
 
 # ==========================================
-# 2. Windows Specifics
+# 2. Windows
 # ==========================================
 # WWindows thumbnail cache files
 Thumbs.db
@@ -48,12 +48,25 @@ $RECYCLE.BIN/
 *.lnk
 
 # ==========================================
-# 3. IDEs and Editors
+# 3. VisualStudioCode
 # ==========================================
-.vscode/
-.idea/
-*.swp
-*~
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
 
 # ==========================================
 # 4. Distributed File System Specifics
