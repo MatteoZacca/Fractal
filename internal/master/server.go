@@ -77,17 +77,10 @@ func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*
 		chunkID := fmt.Sprintf("%s-chunk-%d", req.FilePath, i)
 
 		// Ask our Allocator logic for 2 healthy workers
-		dataNodeIDs, err := n.Metadata.AllocateDataNodes(replicationFactor)
+		dataNodeIPs, err := n.Metadata.AllocateDataNodes(replicationFactor)
 		if err != nil {
 			return nil, err // Fails the whole upload if the cluster is unhealthy
 		}
-
-		n.Metadata.mu.RLock()
-		var dataNodeIPs []string
-		for _, nodeID := range dataNodeIDs {
-			dataNodeIPs = append(dataNodeIPs, n.Metadata.DataNodes[nodeID].Address)
-		}
-		n.Metadata.mu.RUnlock()
 
 		blueprint[chunkID] = &pb.NodeList{WorkerIps: dataNodeIPs}
 	}
