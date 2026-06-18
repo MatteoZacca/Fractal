@@ -1,3 +1,5 @@
+name: fractal
+
 services:
   # THE MASTER NODE
   namenode:
