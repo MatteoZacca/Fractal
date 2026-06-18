@@ -3,7 +3,7 @@ services:
   namenode:
     build: 
       context: .
-    image: dfs-base-image
+    image: fractal-base-image
     command: ["./namenode"]
     container_name: namenode
     ports:
@@ -13,13 +13,13 @@ services:
     volumes:
       - namenode_data:/app/data
     networks:
-      - dfs-network
+      - fractal-network
 
   # ==========================================
   # RACK A: DATANODES 1 & 2
   # ==========================================
   datanode-1:
-    image: dfs-base-image
+    image: fractal-base-image
     command: ["./datanode"]
     container_name: datanode-1
     depends_on:
@@ -35,10 +35,10 @@ services:
     volumes:
       - datanode1_data:/app/data/datanode-1
     networks:
-      - dfs-network
+      - fractal-network
 
   datanode-2:
-    image: dfs-base-image
+    image: fractal-base-image
     command: ["./datanode"]
     container_name: datanode-2
     depends_on:
@@ -54,13 +54,13 @@ services:
     volumes:
       - datanode2_data:/app/data/datanode-2
     networks:
-      - dfs-network
+      - fractal-network
   
   # ==========================================
   # RACK B: DATANODES 3 & 4
   # ==========================================
   datanode-3:
-    image: dfs-base-image
+    image: fractal-base-image
     command: ["./datanode"]
     container_name: datanode-3
     depends_on:
@@ -76,10 +76,10 @@ services:
     volumes:
       - datanode3_data:/app/data/datanode-3
     networks:
-      - dfs-network
+      - fractal-network
 
   datanode-4:
-    image: dfs-base-image
+    image: fractal-base-image
     command: ["./datanode"]
     container_name: datanode-4
     depends_on:
@@ -95,7 +95,7 @@ services:
     volumes:
       - datanode4_data:/app/data/datanode-4
     networks:
-      - dfs-network
+      - fractal-network
 
 # ==========================================
 # INFRASTRUCTURE SETUP
@@ -110,5 +110,5 @@ volumes:
 
 # Creation of a custom virtual network so the containers can resolve names like "namenode"
 networks:
-  dfs-network:
+  fractal-network:
     driver: bridge
