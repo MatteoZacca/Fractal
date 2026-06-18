@@ -1,3 +1,11 @@
+# Fractal
+
+<div align="center">
+    <img src="fractal.png" alt="fractal logo" width="250">
+</div>
+
+
+
 ## Git Commit Conventions
 * **feat**: adds, adjusts, or removes a new feature to the API or UI.
 * **fix**: fixes an API or UI bug of a preceded feat commit.
