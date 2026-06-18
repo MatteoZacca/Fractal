@@ -12,7 +12,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "Fractal-client",
+	Use:   "fractal",
 	Short: "CLI for Fractal distributed file system",
 }
 

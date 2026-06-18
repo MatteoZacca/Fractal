@@ -94,10 +94,6 @@ var createCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(createCmd)
-}
-
 func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) error {
 	// Connect to DataNode
 	dataNodeClient, conn, err := getDataNodeClient(dataNodeIP)
@@ -144,4 +140,8 @@ func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) err
 	}
 
 	return nil
+}
+
+func init() {
+	rootCmd.AddCommand(createCmd)
 }
