@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/MatteoZacca/distributed-file-system/pb"
+	"github.com/MatteoZacca/Fractal/pb"
 )
 
 // Master

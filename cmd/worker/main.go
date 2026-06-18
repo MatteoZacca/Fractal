@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/MatteoZacca/distributed-file-system/internal/worker"
-	"github.com/MatteoZacca/distributed-file-system/pb"
+	"github.com/MatteoZacca/Fractal/internal/worker"
+	"github.com/MatteoZacca/Fractal/pb"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

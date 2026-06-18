@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/MatteoZacca/distributed-file-system/pb"
+	"github.com/MatteoZacca/Fractal/pb"
 
 	"google.golang.org/grpc"
 )

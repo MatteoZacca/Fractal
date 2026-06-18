@@ -5,8 +5,8 @@ import (
 	"net"
 	"os"
 
-	"github.com/MatteoZacca/distributed-file-system/internal/master"
-	"github.com/MatteoZacca/distributed-file-system/pb"
+	"github.com/MatteoZacca/Fractal/internal/master"
+	"github.com/MatteoZacca/Fractal/pb"
 	"google.golang.org/grpc"
 )
 

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/MatteoZacca/distributed-file-system/internal/client"
+import "github.com/MatteoZacca/Fractal/internal/client"
 
 func main() {
 	client.Execute()

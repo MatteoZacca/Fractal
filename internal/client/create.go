@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/MatteoZacca/distributed-file-system/pb"
+	"github.com/MatteoZacca/Fractal/pb"
 	"github.com/spf13/cobra"
 )
 
