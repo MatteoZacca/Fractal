@@ -16,7 +16,7 @@ const StorageChunkSize = 64 * 1024 * 1024 // 64MB
 const StreamChunkSize = 64 * 1024         // 64KB
 
 var createCmd = &cobra.Command{
-	Use:   "create [filepath]",
+	Use:   "create `path\to\file`",
 	Short: "create and upload a file to the cluster",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
