@@ -23,6 +23,7 @@ const (
 	MasterService_CommitFile_FullMethodName       = "/dfs.MasterService/CommitFile"
 	MasterService_GetFileLocations_FullMethodName = "/dfs.MasterService/GetFileLocations"
 	MasterService_SendHeartbeat_FullMethodName    = "/dfs.MasterService/SendHeartbeat"
+	MasterService_ListFiles_FullMethodName        = "/dfs.MasterService/ListFiles"
 )
 
 // MasterServiceClient is the client API for MasterService service.
@@ -35,6 +36,7 @@ type MasterServiceClient interface {
 	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
 	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
+	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
 }
 
 type masterServiceClient struct {
@@ -85,6 +87,16 @@ func (c *masterServiceClient) SendHeartbeat(ctx context.Context, in *HeartbeatMs
 	return out, nil
 }
 
+func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFilesResponse)
+	err := c.cc.Invoke(ctx, MasterService_ListFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterServiceServer is the server API for MasterService service.
 // All implementations must embed UnimplementedMasterServiceServer
 // for forward compatibility.
@@ -95,6 +107,7 @@ type MasterServiceServer interface {
 	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
 	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
 	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
+	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
 	mustEmbedUnimplementedMasterServiceServer()
 }
 
@@ -116,6 +129,9 @@ func (UnimplementedMasterServiceServer) GetFileLocations(context.Context, *GetFi
 }
 func (UnimplementedMasterServiceServer) SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendHeartbeat not implemented")
+}
+func (UnimplementedMasterServiceServer) ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFiles not implemented")
 }
 func (UnimplementedMasterServiceServer) mustEmbedUnimplementedMasterServiceServer() {}
 func (UnimplementedMasterServiceServer) testEmbeddedByValue()                       {}
@@ -210,6 +226,24 @@ func _MasterService_SendHeartbeat_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterService_ListFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).ListFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_ListFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).ListFiles(ctx, req.(*ListFilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MasterService_ServiceDesc is the grpc.ServiceDesc for MasterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -232,6 +266,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendHeartbeat",
 			Handler:    _MasterService_SendHeartbeat_Handler,
+		},
+		{
+			MethodName: "ListFiles",
+			Handler:    _MasterService_ListFiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

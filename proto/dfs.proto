@@ -28,30 +28,36 @@ message ChunkData {
 // MASTER NODE MESSAGES
 // ==========================================
 
+// Client -> NameNode
 message CreateFileRequest {
     string file_path = 1;
     int64 file_size = 2;
 }
 
+// NameNode -> Client
 message CreateFileResponse {
     // Maps a ChunkID (e.g., "chunk-123") to a list of Worker IPs (e.g., ["192.168.1.5:8001", "192.168.1.6:8002"])
     map<string, NodeList> chunk_locations = 1;
 }
 
+// Client -> NameNode
 message CommitFileRequest {
     string file_path = 1;
     repeated string chunk_ids = 2;
     map<string, NodeList> chunk_locations = 3;
 }
 
+// Client -> NameNode
 message GetFileRequest {
     string file_path = 1;
 }
 
+// NameNode -> Client
 message GetFileResponse {
     map<string, NodeList> chunk_locations = 1;
 }
 
+// DataNode -> NameNode
 message HeartbeatMsg {
     string node_id = 1;
     string address = 2;
@@ -61,10 +67,29 @@ message HeartbeatMsg {
     string rack_id = 6;
 }
 
+// ===================================================
+// CLIENT asks NAMENODE for listing files in namespace
+// ===================================================
+
+// Client -> NameNode
+message ListFilesRequest {}
+
+message FileInfo {
+    string file_name = 1;
+    int32 chunk_count = 2;
+}
+
+// NameNode -> Client
+message ListFilesResponse {
+    repeated FileInfo files = 1;
+}
+
+
 // ==========================================
 // WORKER NODE MESSAGES
 // ==========================================
 
+// CLient -> DataNode
 message RetrieveChunkRequest {
     string chunk_id = 1;
 }
@@ -79,6 +104,7 @@ service MasterService {
     rpc CommitFile(CommitFileRequest) returns (StandardResponse); // Call this AFTER Client uploads chunks
     rpc GetFileLocations(GetFileRequest) returns (GetFileResponse);
     rpc SendHeartbeat(HeartbeatMsg) returns (StandardResponse);
+    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
 }
 
 // The API exposed by the Worker Node

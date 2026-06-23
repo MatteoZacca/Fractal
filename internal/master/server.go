@@ -93,13 +93,11 @@ func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*
 // Client -> NameNode
 func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*pb.StandardResponse, error) {
 	n.Metadata.mu.Lock()
-	defer n.Metadata.mu.Unlock()
-
 	n.Metadata.Files[req.FilePath] = req.ChunkIds
-
 	for chunkID, nodeIDs := range req.ChunkLocations {
 		n.Metadata.ChunkLocations[chunkID] = nodeIDs.WorkerIps
 	}
+	n.Metadata.mu.Unlock()
 
 	err := n.Metadata.SaveToDisk("namespace.json")
 	if err != nil {
@@ -107,5 +105,4 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 	}
 
 	return &pb.StandardResponse{Success: true}, nil
-
 }
