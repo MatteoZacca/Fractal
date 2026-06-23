@@ -126,3 +126,30 @@ func (n *NameNode) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb
 	}, nil
 
 }
+
+func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*pb.StandardResponse, error) {
+	n.Metadata.mu.Lock()
+
+	chunkIDs, exists := n.Metadata.Files[req.FilePath]
+	if !exists {
+		n.Metadata.mu.Unlock()
+		return nil, fmt.Errorf("file %s not found in the system", req.FilePath)
+	}
+
+	// Erase the physical chunk mappings (3x replicas)
+	for _, chunkID := range chunkIDs {
+		delete(n.Metadata.ChunkLocations, chunkID)
+	}
+
+	// Erase the logical file mapping
+	delete(n.Metadata.Files, req.FilePath)
+
+	n.Metadata.mu.Unlock()
+
+	err := n.Metadata.SaveToDisk("namespace.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to save metadata: %v", err)
+	}
+
+	return &pb.StandardResponse{Success: true}, nil
+}
