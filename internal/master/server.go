@@ -48,21 +48,11 @@ func (n *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest)
 	responseMap := make(map[string]*pb.NodeList)
 
 	for _, chunkID := range chunkIDs {
-		dataNodesIDs := n.Metadata.ChunkLocations[chunkID]
-		var dataNodeIPs []string
-
-		for _, nodeID := range dataNodesIDs {
-			if dataNodeInfo, isOnline := n.Metadata.DataNodes[nodeID]; isOnline {
-				dataNodeIPs = append(dataNodeIPs, dataNodeInfo.Address)
-			}
-		}
-
+		dataNodeIPs := n.Metadata.ChunkLocations[chunkID]
 		responseMap[chunkID] = &pb.NodeList{WorkerIps: dataNodeIPs}
 	}
 
-	return &pb.GetFileResponse{
-		ChunkLocations: responseMap,
-	}, nil
+	return &pb.GetFileResponse{ChunkLocations: responseMap}, nil
 }
 
 // Client -> NomeNode
