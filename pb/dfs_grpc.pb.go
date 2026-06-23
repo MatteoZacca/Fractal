@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	MasterService_CreateFile_FullMethodName       = "/dfs.MasterService/CreateFile"
 	MasterService_CommitFile_FullMethodName       = "/dfs.MasterService/CommitFile"
+	MasterService_DeleteFile_FullMethodName       = "/dfs.MasterService/DeleteFile"
 	MasterService_GetFileLocations_FullMethodName = "/dfs.MasterService/GetFileLocations"
 	MasterService_SendHeartbeat_FullMethodName    = "/dfs.MasterService/SendHeartbeat"
 	MasterService_ListFiles_FullMethodName        = "/dfs.MasterService/ListFiles"
@@ -34,6 +35,7 @@ const (
 type MasterServiceClient interface {
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*CreateFileResponse, error)
 	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
 	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
 	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
@@ -61,6 +63,16 @@ func (c *masterServiceClient) CommitFile(ctx context.Context, in *CommitFileRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StandardResponse)
 	err := c.cc.Invoke(ctx, MasterService_CommitFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_DeleteFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +117,7 @@ func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesReques
 type MasterServiceServer interface {
 	CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error)
 	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
+	DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error)
 	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
 	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
 	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
@@ -123,6 +136,9 @@ func (UnimplementedMasterServiceServer) CreateFile(context.Context, *CreateFileR
 }
 func (UnimplementedMasterServiceServer) CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CommitFile not implemented")
+}
+func (UnimplementedMasterServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteFile not implemented")
 }
 func (UnimplementedMasterServiceServer) GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileLocations not implemented")
@@ -186,6 +202,24 @@ func _MasterService_CommitFile_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterServiceServer).CommitFile(ctx, req.(*CommitFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).DeleteFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_DeleteFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).DeleteFile(ctx, req.(*DeleteFileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -260,6 +294,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MasterService_CommitFile_Handler,
 		},
 		{
+			MethodName: "DeleteFile",
+			Handler:    _MasterService_DeleteFile_Handler,
+		},
+		{
 			MethodName: "GetFileLocations",
 			Handler:    _MasterService_GetFileLocations_Handler,
 		},
@@ -279,6 +317,7 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 const (
 	WorkerService_StoreChunk_FullMethodName    = "/dfs.WorkerService/StoreChunk"
 	WorkerService_RetrieveChunk_FullMethodName = "/dfs.WorkerService/RetrieveChunk"
+	WorkerService_DeleteChunk_FullMethodName   = "/dfs.WorkerService/DeleteChunk"
 )
 
 // WorkerServiceClient is the client API for WorkerService service.
@@ -291,6 +330,7 @@ type WorkerServiceClient interface {
 	StoreChunk(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChunkData, StandardResponse], error)
 	// Client streams chunks FROM the Worker
 	RetrieveChunk(ctx context.Context, in *RetrieveChunkRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChunkData], error)
+	DeleteChunk(ctx context.Context, in *DeleteChunkRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
 type workerServiceClient struct {
@@ -333,6 +373,16 @@ func (c *workerServiceClient) RetrieveChunk(ctx context.Context, in *RetrieveChu
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type WorkerService_RetrieveChunkClient = grpc.ServerStreamingClient[ChunkData]
 
+func (c *workerServiceClient) DeleteChunk(ctx context.Context, in *DeleteChunkRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, WorkerService_DeleteChunk_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkerServiceServer is the server API for WorkerService service.
 // All implementations must embed UnimplementedWorkerServiceServer
 // for forward compatibility.
@@ -343,6 +393,7 @@ type WorkerServiceServer interface {
 	StoreChunk(grpc.ClientStreamingServer[ChunkData, StandardResponse]) error
 	// Client streams chunks FROM the Worker
 	RetrieveChunk(*RetrieveChunkRequest, grpc.ServerStreamingServer[ChunkData]) error
+	DeleteChunk(context.Context, *DeleteChunkRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedWorkerServiceServer()
 }
 
@@ -358,6 +409,9 @@ func (UnimplementedWorkerServiceServer) StoreChunk(grpc.ClientStreamingServer[Ch
 }
 func (UnimplementedWorkerServiceServer) RetrieveChunk(*RetrieveChunkRequest, grpc.ServerStreamingServer[ChunkData]) error {
 	return status.Error(codes.Unimplemented, "method RetrieveChunk not implemented")
+}
+func (UnimplementedWorkerServiceServer) DeleteChunk(context.Context, *DeleteChunkRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteChunk not implemented")
 }
 func (UnimplementedWorkerServiceServer) mustEmbedUnimplementedWorkerServiceServer() {}
 func (UnimplementedWorkerServiceServer) testEmbeddedByValue()                       {}
@@ -398,13 +452,36 @@ func _WorkerService_RetrieveChunk_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type WorkerService_RetrieveChunkServer = grpc.ServerStreamingServer[ChunkData]
 
+func _WorkerService_DeleteChunk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteChunkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).DeleteChunk(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkerService_DeleteChunk_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).DeleteChunk(ctx, req.(*DeleteChunkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkerService_ServiceDesc is the grpc.ServiceDesc for WorkerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var WorkerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "dfs.WorkerService",
 	HandlerType: (*WorkerServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "DeleteChunk",
+			Handler:    _WorkerService_DeleteChunk_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StoreChunk",

@@ -57,6 +57,14 @@ message GetFileResponse {
     map<string, NodeList> chunk_locations = 1;
 }
 
+message DeleteFileRequest {
+    string file_path = 1;
+}
+
+message DeleteChunkRequest {
+    string chunk_id = 1;
+}
+
 // DataNode -> NameNode
 message HeartbeatMsg {
     string node_id = 1;
@@ -102,6 +110,7 @@ message RetrieveChunkRequest {
 service MasterService {
     rpc CreateFile(CreateFileRequest) returns (CreateFileResponse);
     rpc CommitFile(CommitFileRequest) returns (StandardResponse); // Call this AFTER Client uploads chunks
+    rpc DeleteFile(DeleteFileRequest) returns (StandardResponse);
     rpc GetFileLocations(GetFileRequest) returns (GetFileResponse);
     rpc SendHeartbeat(HeartbeatMsg) returns (StandardResponse);
     rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
@@ -114,4 +123,5 @@ service WorkerService {
 
     // Client streams chunks FROM the Worker
     rpc RetrieveChunk(RetrieveChunkRequest) returns (stream ChunkData);
+    rpc DeleteChunk(DeleteChunkRequest) returns (StandardResponse);
 }
