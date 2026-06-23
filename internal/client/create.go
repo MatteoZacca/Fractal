@@ -40,7 +40,7 @@ var createCmd = &cobra.Command{
 		// Connect to the NameNode
 		masterClient, conn, err := getNameNodeClient()
 		if err != nil {
-			log.Fatalf("NameNode connection failed: %v", err)
+			log.Fatalf("Failed to connect to NameNode: %v", err)
 		}
 		defer conn.Close()
 
@@ -49,7 +49,6 @@ var createCmd = &cobra.Command{
 			FilePath: fileName,
 			FileSize: fileSize,
 		})
-
 		if err != nil {
 			log.Fatalf("NameNode rejected upload: %v", err)
 		}
