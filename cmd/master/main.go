@@ -17,7 +17,7 @@ func main() {
 	}
 	masterPort := ":" + port
 
-	metadataFile := "namespace.json"
+	metadataFile := "/app/data/namespace.json"
 
 	leader := master.NewMetadataStore()
 

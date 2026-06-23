@@ -102,7 +102,7 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 	}
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk("namespace.json")
+	err := n.Metadata.SaveToDisk("/app/data/namespace.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata to disk: %v", err)
 	}
@@ -149,7 +149,7 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk("namespace.json")
+	err := n.Metadata.SaveToDisk("/app/data/namespace.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}
