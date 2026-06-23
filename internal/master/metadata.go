@@ -1,3 +1,4 @@
+// This handles the raw data and physical disk I/O (SaveToDisk).
 package master
 
 import (

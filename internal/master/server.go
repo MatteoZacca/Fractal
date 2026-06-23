@@ -1,3 +1,6 @@
+// Its only job is to talk to the network (gRPC). It receives the request, unpacks it,
+// calls internal functions, and packs up the response.
+
 package master
 
 import (

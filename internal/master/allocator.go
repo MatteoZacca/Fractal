@@ -1,3 +1,5 @@
+// This holds the heavy mathematical brain (rackAwareness). It doesn't know anything
+// about gRPC; it just takes a list of nodes and returns IPs.
 package master
 
 import (
