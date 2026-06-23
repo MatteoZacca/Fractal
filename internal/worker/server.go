@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -83,4 +84,15 @@ func (s *WorkerServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.S
 		}
 	}
 	return nil
+}
+
+// Client -> Worker (Delete)
+func (s *WorkerServer) DeleteChunk(ctx context.Context, req *pb.DeleteChunkRequest) (*pb.StandardResponse, error) {
+	// Ask DiskManager to destroy the file
+	err := s.DiskManager.DeleteChunk(req.ChunkId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.StandardResponse{Success: true}, nil
 }
