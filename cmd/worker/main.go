@@ -59,8 +59,8 @@ func main() {
 
 	grpcServer := grpc.NewServer()         // 2 -> Empty server: ask the gRPC library to give you a blank server
 	dataNodeLogic := &worker.WorkerServer{ // 3 -> Registration: attach your logic to the blank server
-		NodeId:  nodeID,
-		DataDir: dataDir,
+		NodeId:      nodeID,
+		DiskManager: worker.NewDiskManager(dataDir),
 	}
 	pb.RegisterWorkerServiceServer(grpcServer, dataNodeLogic)
 
