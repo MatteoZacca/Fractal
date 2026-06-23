@@ -106,3 +106,23 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 
 	return &pb.StandardResponse{Success: true}, nil
 }
+
+// Client <-> NameNode
+func (n *NameNode) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.ListFilesResponse, error) {
+	n.Metadata.mu.RLock()
+	defer n.Metadata.mu.RUnlock()
+
+	var fileList []*pb.FileInfo
+
+	for fileName, chunkIDs := range n.Metadata.Files {
+		fileList = append(fileList, &pb.FileInfo{
+			FileName:   fileName,
+			ChunkCount: int32(len(chunkIDs)),
+		})
+	}
+
+	return &pb.ListFilesResponse{
+		Files: fileList,
+	}, nil
+
+}
