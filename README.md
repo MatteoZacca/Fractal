@@ -56,6 +56,12 @@ This compiles the Go code and safely places `fractal.exe` into a permanent `C:\F
 
 To tell Windows where to find the `fractal` command, in the 'User Environment Variables' find the variable named 'Path', select it, and add `C:\Fractal`. Click OK on all windows to save.
 
+Close your current terminal and open a new one. Verify the installation by typing:
+```cmd
+fractal --help
+```
+
+
 
 
 
