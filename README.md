@@ -4,6 +4,7 @@
     <img src="fractal.png" alt="fractal logo" width="250">
 </div>
 
+
 ## Generating Random Data
 
 If you want to test the cluster's chunking and streaming performance before uploading your actual files, you can instantly generate massive dummy files directly from your terminal.
@@ -25,13 +26,38 @@ dd if=/dev/urandom of=random-1gb.bin bs=1M count=1024 status=progress
 ### 🪟 For Windows Users
 Use the native `fsutil` command to instantly allocate a file of a specific size on your hard drive. The file will be created exactly inside the folder where your command prompt terminal is currently open:
 
-```bash
+```cmd
 fsutil file createnew random-1gb.bin 1073741824
 ```
 
 - `fsutil file createnew`: the built-in Windows utility command used to instantly allocate empty file space
 - `random-1gb.bin`: the name of the output file
 - `1073741824`: the exact file size required in bytes -> because 1GB = 1024 MB = 1,048,576 KB = 1,073,741,824 bytes
+
+
+## Global CLI Installation
+
+To get the most out of Fractal, you can install it as a native, globally accessible command on your system. This allows you to interact with the cluster from any folder on your computer without needing to use `go run`.
+
+**Before:** `go run ./cmd/client create "fileName.pdf"`
+
+**After:** `fractal create "fileName.pdf"`
+
+---
+
+### 🪟 For Windows Users
+
+Open your terminal in the root of the project and run the build script:
+```cmd
+.\script\make
+```
+
+This compiles the Go code and safely places `fractal.exe` into a permanent `C:\Fractal` folder.
+
+To tell Windows where to find the `fractal` command, in the 'User Environment Variables' find the variable named 'Path', select it, and add `C:\Fractal`. Click OK on all windows to save.
+
+
+
 
 
 
