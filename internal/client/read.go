@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -40,7 +41,7 @@ var readCmd = &cobra.Command{
 		}
 		defer outFile.Close()
 
-		// Download and stithc the chunks in correct order
+		// Download and stitch the chunks in correct order
 		totalChunks := len(res.ChunkLocations)
 		log.Printf("blueprint received! file is split into %d chunks. starting assemply...", totalChunks)
 
@@ -52,15 +53,15 @@ var readCmd = &cobra.Command{
 			}
 
 			chunkDownloaded := false
-			for _, workerIP := range nodeList.WorkerIps {
-				log.Printf("Pulling %s from %s...", chunkID, workerIP)
-				err := downloadChunk(workerIP, chunkID, outFile) // TO DO
+			for _, dataNodeIP := range nodeList.WorkerIps {
+				log.Printf("Pulling %s from %s...", chunkID, dataNodeIP)
+				err := downloadChunk(dataNodeIP, chunkID, outFile)
 
 				if err == nil {
 					chunkDownloaded = true
 					break
 				}
-				log.Printf("failed to download from %s, trying next replica...: %v", workerIP, err)
+				log.Printf("failed to download from %s, trying next replica...: %v", dataNodeIP, err)
 
 				if !chunkDownloaded {
 					log.Fatalf("CRITICAL: Failed to download %s from all available replicas. Cluster has lost data!", chunkID)
@@ -73,6 +74,41 @@ var readCmd = &cobra.Command{
 	},
 }
 
-func downloadChunk() {
-	// TO DO
+// Helper function to stream bytes directly from the network to the hard drive
+func downloadChunk(dataNodeIP string, chunkID string, outFile *os.File) error {
+	dataNodeClient, conn, err := getDataNodeClient(dataNodeIP)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	stream, err := dataNodeClient.RetrieveChunk(context.Background(), &pb.RetrieveChunkRequest{
+		ChunkId: chunkID,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Stream the bytes from network directly to the local file
+	for {
+		chunkData, err := stream.Recv()
+		if err == io.EOF {
+			break // The DataNode finished sending this chunk
+		}
+
+		if err != nil {
+			return fmt.Errorf("network stream interrupted: %v", err)
+		}
+
+		// Append the bytes
+		_, err = outFile.Write(chunkData.Data)
+		if err != nil {
+			return fmt.Errorf("failed to write to local disk: %v", err)
+		}
+	}
+	return nil
+}
+
+func init() {
+	rootCmd.AddCommand(readCmd)
 }
