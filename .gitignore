@@ -1,5 +1,5 @@
 # ==========================================
-# 1. Go
+# Go
 # ==========================================
 bin/
 
@@ -20,7 +20,7 @@ bin/
 vendor/
 
 # ==========================================
-# 2. Windows
+# Windows
 # ==========================================
 # Windows thumbnail cache files
 Thumbs.db
@@ -48,7 +48,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # ==========================================
-# 3. VisualStudioCode
+# VisualStudioCode
 # ==========================================
 .vscode/*
 !.vscode/settings.json
@@ -69,10 +69,12 @@ $RECYCLE.BIN/
 .ionide
 
 # ==========================================
-# 4. Distributed File System Specifics
+# Fractal
 # ==========================================
 # Ignore the NameNode's local memory state file
 namespace.json
 
 # Ignore the DataNodes' local hard drives
 data/
+
+downloads/
