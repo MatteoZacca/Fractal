@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: proto/dfs.proto
+// source: proto/fractal.proto
 
 package pb
 
@@ -19,12 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MasterService_CreateFile_FullMethodName       = "/dfs.MasterService/CreateFile"
-	MasterService_CommitFile_FullMethodName       = "/dfs.MasterService/CommitFile"
-	MasterService_DeleteFile_FullMethodName       = "/dfs.MasterService/DeleteFile"
-	MasterService_GetFileLocations_FullMethodName = "/dfs.MasterService/GetFileLocations"
-	MasterService_SendHeartbeat_FullMethodName    = "/dfs.MasterService/SendHeartbeat"
-	MasterService_ListFiles_FullMethodName        = "/dfs.MasterService/ListFiles"
+	MasterService_CreateFile_FullMethodName       = "/fractal.MasterService/CreateFile"
+	MasterService_DeleteFile_FullMethodName       = "/fractal.MasterService/DeleteFile"
+	MasterService_ListFiles_FullMethodName        = "/fractal.MasterService/ListFiles"
+	MasterService_GetFileLocations_FullMethodName = "/fractal.MasterService/GetFileLocations"
+	MasterService_CommitFile_FullMethodName       = "/fractal.MasterService/CommitFile"
+	MasterService_SwapFileName_FullMethodName     = "/fractal.MasterService/SwapFileName"
+	MasterService_SendHeartbeat_FullMethodName    = "/fractal.MasterService/SendHeartbeat"
 )
 
 // MasterServiceClient is the client API for MasterService service.
@@ -34,11 +35,12 @@ const (
 // The API exposed by the Master Node
 type MasterServiceClient interface {
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*CreateFileResponse, error)
-	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
-	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
-	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
 	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
+	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
+	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
 type masterServiceClient struct {
@@ -59,40 +61,10 @@ func (c *masterServiceClient) CreateFile(ctx context.Context, in *CreateFileRequ
 	return out, nil
 }
 
-func (c *masterServiceClient) CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StandardResponse)
-	err := c.cc.Invoke(ctx, MasterService_CommitFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *masterServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StandardResponse)
 	err := c.cc.Invoke(ctx, MasterService_DeleteFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterServiceClient) GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFileResponse)
-	err := c.cc.Invoke(ctx, MasterService_GetFileLocations_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterServiceClient) SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StandardResponse)
-	err := c.cc.Invoke(ctx, MasterService_SendHeartbeat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,6 +81,46 @@ func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesReques
 	return out, nil
 }
 
+func (c *masterServiceClient) GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFileResponse)
+	err := c.cc.Invoke(ctx, MasterService_GetFileLocations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterServiceClient) CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_CommitFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterServiceClient) SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_SwapFileName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterServiceClient) SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_SendHeartbeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterServiceServer is the server API for MasterService service.
 // All implementations must embed UnimplementedMasterServiceServer
 // for forward compatibility.
@@ -116,11 +128,12 @@ func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesReques
 // The API exposed by the Master Node
 type MasterServiceServer interface {
 	CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error)
-	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
 	DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error)
-	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
-	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
 	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
+	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
+	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
+	SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error)
+	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
 	mustEmbedUnimplementedMasterServiceServer()
 }
 
@@ -134,20 +147,23 @@ type UnimplementedMasterServiceServer struct{}
 func (UnimplementedMasterServiceServer) CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFile not implemented")
 }
-func (UnimplementedMasterServiceServer) CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CommitFile not implemented")
-}
 func (UnimplementedMasterServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFile not implemented")
+}
+func (UnimplementedMasterServiceServer) ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFiles not implemented")
 }
 func (UnimplementedMasterServiceServer) GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileLocations not implemented")
 }
+func (UnimplementedMasterServiceServer) CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CommitFile not implemented")
+}
+func (UnimplementedMasterServiceServer) SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SwapFileName not implemented")
+}
 func (UnimplementedMasterServiceServer) SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendHeartbeat not implemented")
-}
-func (UnimplementedMasterServiceServer) ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFiles not implemented")
 }
 func (UnimplementedMasterServiceServer) mustEmbedUnimplementedMasterServiceServer() {}
 func (UnimplementedMasterServiceServer) testEmbeddedByValue()                       {}
@@ -188,24 +204,6 @@ func _MasterService_CreateFile_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterService_CommitFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommitFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterServiceServer).CommitFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterService_CommitFile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).CommitFile(ctx, req.(*CommitFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MasterService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteFileRequest)
 	if err := dec(in); err != nil {
@@ -220,42 +218,6 @@ func _MasterService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterServiceServer).DeleteFile(ctx, req.(*DeleteFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterService_GetFileLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterServiceServer).GetFileLocations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterService_GetFileLocations_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).GetFileLocations(ctx, req.(*GetFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterService_SendHeartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HeartbeatMsg)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterServiceServer).SendHeartbeat(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterService_SendHeartbeat_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).SendHeartbeat(ctx, req.(*HeartbeatMsg))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -278,11 +240,83 @@ func _MasterService_ListFiles_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterService_GetFileLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).GetFileLocations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_GetFileLocations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).GetFileLocations(ctx, req.(*GetFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterService_CommitFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).CommitFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_CommitFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).CommitFile(ctx, req.(*CommitFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterService_SwapFileName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SwapFileNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).SwapFileName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_SwapFileName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).SwapFileName(ctx, req.(*SwapFileNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterService_SendHeartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HeartbeatMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).SendHeartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_SendHeartbeat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).SendHeartbeat(ctx, req.(*HeartbeatMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MasterService_ServiceDesc is the grpc.ServiceDesc for MasterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var MasterService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "dfs.MasterService",
+	ServiceName: "fractal.MasterService",
 	HandlerType: (*MasterServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -290,34 +324,38 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MasterService_CreateFile_Handler,
 		},
 		{
-			MethodName: "CommitFile",
-			Handler:    _MasterService_CommitFile_Handler,
-		},
-		{
 			MethodName: "DeleteFile",
 			Handler:    _MasterService_DeleteFile_Handler,
+		},
+		{
+			MethodName: "ListFiles",
+			Handler:    _MasterService_ListFiles_Handler,
 		},
 		{
 			MethodName: "GetFileLocations",
 			Handler:    _MasterService_GetFileLocations_Handler,
 		},
 		{
+			MethodName: "CommitFile",
+			Handler:    _MasterService_CommitFile_Handler,
+		},
+		{
+			MethodName: "SwapFileName",
+			Handler:    _MasterService_SwapFileName_Handler,
+		},
+		{
 			MethodName: "SendHeartbeat",
 			Handler:    _MasterService_SendHeartbeat_Handler,
 		},
-		{
-			MethodName: "ListFiles",
-			Handler:    _MasterService_ListFiles_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/dfs.proto",
+	Metadata: "proto/fractal.proto",
 }
 
 const (
-	WorkerService_StoreChunk_FullMethodName    = "/dfs.WorkerService/StoreChunk"
-	WorkerService_RetrieveChunk_FullMethodName = "/dfs.WorkerService/RetrieveChunk"
-	WorkerService_DeleteChunk_FullMethodName   = "/dfs.WorkerService/DeleteChunk"
+	WorkerService_StoreChunk_FullMethodName    = "/fractal.WorkerService/StoreChunk"
+	WorkerService_RetrieveChunk_FullMethodName = "/fractal.WorkerService/RetrieveChunk"
+	WorkerService_DeleteChunk_FullMethodName   = "/fractal.WorkerService/DeleteChunk"
 )
 
 // WorkerServiceClient is the client API for WorkerService service.
@@ -474,7 +512,7 @@ func _WorkerService_DeleteChunk_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var WorkerService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "dfs.WorkerService",
+	ServiceName: "fractal.WorkerService",
 	HandlerType: (*WorkerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -494,5 +532,5 @@ var WorkerService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "proto/dfs.proto",
+	Metadata: "proto/fractal.proto",
 }
