@@ -17,7 +17,10 @@ type NameNode struct {
 	Metadata *MetadataStore
 }
 
-const replicationFactor = 3
+const (
+	metadataFile      = "/app/data/namespace.json"
+	replicationFactor = 3
+)
 
 // DataNode -> NameNode
 func (n *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb.StandardResponse, error) {
@@ -92,7 +95,7 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 	}
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk("/app/data/namespace.json")
+	err := n.Metadata.SaveToDisk(metadataFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata to disk: %v", err)
 	}
@@ -139,7 +142,29 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk("/app/data/namespace.json")
+	err := n.Metadata.SaveToDisk(metadataFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save metadata: %v", err)
+	}
+
+	return &pb.StandardResponse{Success: true}, nil
+}
+
+func (n *NameNode) SwapFileName(ctx context.Context, req *pb.SwapFileNameRequest) (*pb.StandardResponse, error) {
+	n.Metadata.mu.Lock()
+
+	chunks, exists := n.Metadata.Files[req.OldPath]
+	if !exists {
+		n.Metadata.mu.Unlock()
+		return nil, fmt.Errorf("file %s not found in namespace", req.OldPath)
+	}
+
+	n.Metadata.Files[req.NewPath] = chunks
+	delete(n.Metadata.Files, req.OldPath)
+
+	n.Metadata.mu.Unlock()
+
+	err := n.Metadata.SaveToDisk(metadataFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}
