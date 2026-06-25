@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+
 func main() {
 
 	nodeID := os.Getenv("NODE_ID")
@@ -42,7 +44,7 @@ func main() {
 		rackID = "rack-default"
 	}
 
-	err := os.MkdirAll(dataDir, 0755)
+	err := os.MkdirAll(dataDir, DirPermissions)
 	if err != nil {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}

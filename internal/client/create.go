@@ -12,8 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const StorageChunkSize = 64 * 1024 * 1024 // 64MB
-const StreamChunkSize = 64 * 1024         // 64KB
+const (
+	StorageChunkSize = 64 * 1024 * 1024 // 64MB
+	StreamChunkSize  = 64 * 1024        // 64KB
+)
 
 var createCmd = &cobra.Command{
 	Use:   "create `path\to\file`",

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+const DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+
 // DiskManager handles all physical hard drive operations
 type DiskManager struct {
 	DataDir string
@@ -14,7 +16,7 @@ type DiskManager struct {
 
 func NewDiskManager(dataDir string) *DiskManager {
 	// Automatically create the directory if it doesn't exist yet
-	os.MkdirAll(dataDir, 0755)
+	os.MkdirAll(dataDir, DirPermissions)
 
 	return &DiskManager{
 		DataDir: dataDir,

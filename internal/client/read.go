@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	downloadsDir   = "downloads"
-	dirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+	DownloadsDir   = "downloads"
+	DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
 )
 
 var readCmd = &cobra.Command{
@@ -40,12 +40,12 @@ var readCmd = &cobra.Command{
 		}
 
 		// Create 'downloads' directory and output file
-		err = os.MkdirAll(downloadsDir, dirPermissions)
+		err = os.MkdirAll(DownloadsDir, DirPermissions)
 		if err != nil {
 			log.Fatalf("failed to create downloads directory: %v", err)
 		}
 
-		outputPath := filepath.Join(downloadsDir, fileName)
+		outputPath := filepath.Join(DownloadsDir, fileName)
 
 		outputFile, err := os.Create(outputPath)
 		if err != nil {
