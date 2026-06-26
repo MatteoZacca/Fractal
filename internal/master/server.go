@@ -153,14 +153,22 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 func (n *NameNode) SwapFileName(ctx context.Context, req *pb.SwapFileNameRequest) (*pb.StandardResponse, error) {
 	n.Metadata.mu.Lock()
 
-	chunks, exists := n.Metadata.Files[req.OldPath]
+	newChunks, exists := n.Metadata.Files[req.OldPath]
 	if !exists {
 		n.Metadata.mu.Unlock()
 		return nil, fmt.Errorf("file %s not found in namespace", req.OldPath)
 	}
 
-	n.Metadata.Files[req.NewPath] = chunks
+	oldChunks, oldExists := n.Metadata.Files[req.NewPath]
+
+	n.Metadata.Files[req.NewPath] = newChunks
 	delete(n.Metadata.Files, req.OldPath)
+
+	if oldExists {
+		for _, chunkID := range oldChunks {
+			delete(n.Metadata.ChunkLocations, chunkID)
+		}
+	}
 
 	n.Metadata.mu.Unlock()
 

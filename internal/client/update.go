@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
+	"time"
 
 	"github.com/MatteoZacca/Fractal/pb"
 	"github.com/spf13/cobra"
@@ -16,9 +18,11 @@ var updateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		localPath := args[0]
 		dockerFileName := filepath.Base(localPath)
-		tmpName := "tmp_" + dockerFileName
 
-		log.Printf("Start updating '%s'...", dockerFileName)
+		versionStamp := time.Now().Unix()
+		tmpName := fmt.Sprintf("v%d_%s", versionStamp, dockerFileName)
+
+		log.Printf("Start updating '%s' (Version ID: %d)", dockerFileName, versionStamp)
 
 		masterClient, conn, err := getNameNodeClient()
 		if err != nil {
