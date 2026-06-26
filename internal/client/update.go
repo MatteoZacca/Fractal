@@ -3,20 +3,22 @@ package client
 import (
 	"context"
 	"log"
+	"path/filepath"
 
 	"github.com/MatteoZacca/Fractal/pb"
 	"github.com/spf13/cobra"
 )
 
 var updateCmd = &cobra.Command{
-	Use:   "update [filename]",
+	Use:   "update [path\\to\\local\\file]",
 	Short: "Overwrite an existing file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		originalName := args[0]
-		tmpName := "tmp_" + originalName
+		localPath := args[0]
+		dockerFileName := filepath.Base(localPath)
+		tmpName := "tmp_" + dockerFileName
 
-		log.Printf("Start updating '%s'...", originalName)
+		log.Printf("Start updating '%s'...", dockerFileName)
 
 		masterClient, conn, err := getNameNodeClient()
 		if err != nil {
@@ -24,19 +26,18 @@ var updateCmd = &cobra.Command{
 		}
 
 		oldChunks, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
-			FilePath: originalName,
+			FilePath: dockerFileName,
 		})
 		if err != nil {
 			conn.Close()
-			log.Fatalf("'%s' doesn't exist. Use 'create' to upload a new file.", originalName)
+			log.Fatalf("'%s' doesn't exist. Use 'create' to upload a new file.", dockerFileName)
 		}
 
-		args[0] = tmpName
-		createCmd.Run(cmd, args)
+		uploadFile(localPath, tmpName)
 
 		_, err = masterClient.SwapFileName(context.Background(), &pb.SwapFileNameRequest{
 			OldPath: tmpName,
-			NewPath: originalName,
+			NewPath: dockerFileName,
 		})
 		if err != nil {
 			conn.Close()
@@ -55,7 +56,7 @@ var updateCmd = &cobra.Command{
 		}
 
 		conn.Close()
-		log.Printf("'%s' has been correctly updated.", originalName)
+		log.Printf("'%s' has been correctly updated.", dockerFileName)
 	},
 }
 

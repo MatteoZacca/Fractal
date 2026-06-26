@@ -18,7 +18,7 @@ const (
 )
 
 var readCmd = &cobra.Command{
-	Use:   "read `filename`",
+	Use:   "read [path\\to\\file\\in\\docker]",
 	Short: "Download and reassemble a file from the Fractal cluster",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
