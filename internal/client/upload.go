@@ -145,16 +145,16 @@ func uploadChunkToDataNode(localFilePath string, startOffset int64, chunkID stri
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("error reading file: %v", err)
+			return fmt.Errorf("failed to read the disk: %v", err)
 		}
 
-		// Send the chunk over  the network
+		// Send the chunk over the network
 		err = stream.Send(&pb.ChunkData{
 			ChunkId: chunkID,
 			Data:    buffer[:bytesRead],
 		})
 		if err != nil {
-			return fmt.Errorf("error sending data trough stream: %v", err)
+			return fmt.Errorf("failed to stream data over the network: %v", err)
 		}
 
 		bytesSent += int64(bytesRead)
