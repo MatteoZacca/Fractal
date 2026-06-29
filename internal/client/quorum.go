@@ -25,7 +25,7 @@ func uploadChunkWithQuorum(localPath string, startOffset int64, chunkID string, 
 	successWrites := 0
 	var errors []error
 
-	for i := 0; i < len(dataNodeIPs); i++ {
+	for range dataNodeIPs {
 		err := <-outcomes
 		if err == nil {
 			successWrites++
