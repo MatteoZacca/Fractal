@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"sync"
 
 	"github.com/MatteoZacca/Fractal/pb"
 )
@@ -14,11 +13,10 @@ import (
 const (
 	StorageChunkSize = 64 * 1024 * 1024 // 64MB
 	StreamChunkSize  = 64 * 1024        // 64KB
-	WriteQuorum      = 2
 )
 
-func UploadFile(localFilePath string, targetFileName string) {
-	file, err := os.Open(localFilePath)
+func UploadFile(localPath string, targetFileName string) {
+	file, err := os.Open(localPath)
 	if err != nil {
 		log.Fatalf("could not open file: %v", err)
 	}
@@ -60,38 +58,9 @@ func UploadFile(localFilePath string, targetFileName string) {
 		log.Printf("Broadcasting %s to %d nodes...", chunkID, len(nodeList.WorkerIps))
 
 		// QUORUM CONSENSUS LOGIC
-
-		// buffered channel to collect results without blocking goroutines
-		outcomes := make(chan error, len(nodeList.WorkerIps))
-		var wg sync.WaitGroup
-
-		for _, dataNodeIP := range nodeList.WorkerIps {
-			wg.Add(1)
-			go func(ip string) {
-				defer wg.Done()
-				err := uploadChunkToDataNode(localFilePath, startOffset, chunkID, ip)
-				outcomes <- err
-			}(dataNodeIP)
-		}
-
-		successWrites := 0
-		var errors []error
-
-		for i := 0; i < len(nodeList.WorkerIps); i++ {
-			err := <-outcomes
-			if err == nil {
-				successWrites++
-				if successWrites >= WriteQuorum {
-					log.Printf("Quorum reached for %s", chunkID)
-					break // DOESN'T CARE ABOUT THE 3RD NODE
-				}
-			} else {
-				errors = append(errors, err)
-			}
-		}
-
-		if successWrites < WriteQuorum {
-			log.Fatalf("FAILURE: could not reach Write Quorum for %s: %v", chunkID, errors)
+		err := uploadChunkWithQuorum(localPath, startOffset, chunkID, nodeList.WorkerIps)
+		if err != nil {
+			log.Fatalf("FAILURE: something in uploadChunkWithQuorum went wrong...")
 		}
 
 		currentChunkIndex++
