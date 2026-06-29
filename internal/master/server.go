@@ -18,8 +18,8 @@ type NameNode struct {
 }
 
 const (
-	metadataFile      = "/app/data/namespace.json"
-	replicationFactor = 3
+	MetadataFile      = "/app/data/namespace.json"
+	ReplicationFactor = 3
 )
 
 // DataNode -> NameNode
@@ -73,7 +73,7 @@ func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*
 		chunkID := fmt.Sprintf("%s-chunk-%d", req.FilePath, i)
 
 		// Ask our Allocator logic for 2 healthy workers
-		dataNodeIPs, err := n.Metadata.AllocateDataNodes(replicationFactor)
+		dataNodeIPs, err := n.Metadata.AllocateDataNodes(ReplicationFactor)
 		if err != nil {
 			return nil, err // Fails the whole upload if the cluster is unhealthy
 		}
@@ -95,7 +95,7 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 	}
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(metadataFile)
+	err := n.Metadata.SaveToDisk(MetadataFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata to disk: %v", err)
 	}
@@ -142,7 +142,7 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(metadataFile)
+	err := n.Metadata.SaveToDisk(MetadataFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}
@@ -172,7 +172,7 @@ func (n *NameNode) SwapFileName(ctx context.Context, req *pb.SwapFileNameRequest
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(metadataFile)
+	err := n.Metadata.SaveToDisk(MetadataFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}
