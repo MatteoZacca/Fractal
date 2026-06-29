@@ -826,6 +826,104 @@ func (x *RetrieveChunkRequest) GetChunkId() string {
 	return ""
 }
 
+// Client -> DataNode
+type CheckChunkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChunkId       string                 `protobuf:"bytes,1,opt,name=chunk_id,json=chunkId,proto3" json:"chunk_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckChunkRequest) Reset() {
+	*x = CheckChunkRequest{}
+	mi := &file_proto_fractal_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckChunkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckChunkRequest) ProtoMessage() {}
+
+func (x *CheckChunkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fractal_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckChunkRequest.ProtoReflect.Descriptor instead.
+func (*CheckChunkRequest) Descriptor() ([]byte, []int) {
+	return file_proto_fractal_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CheckChunkRequest) GetChunkId() string {
+	if x != nil {
+		return x.ChunkId
+	}
+	return ""
+}
+
+// DataNode -> Client
+type CheckChunkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Exists        bool                   `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
+	SyzeBytes     int64                  `protobuf:"varint,2,opt,name=syze_bytes,json=syzeBytes,proto3" json:"syze_bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckChunkResponse) Reset() {
+	*x = CheckChunkResponse{}
+	mi := &file_proto_fractal_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckChunkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckChunkResponse) ProtoMessage() {}
+
+func (x *CheckChunkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fractal_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckChunkResponse.ProtoReflect.Descriptor instead.
+func (*CheckChunkResponse) Descriptor() ([]byte, []int) {
+	return file_proto_fractal_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CheckChunkResponse) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
+func (x *CheckChunkResponse) GetSyzeBytes() int64 {
+	if x != nil {
+		return x.SyzeBytes
+	}
+	return 0
+}
+
 var File_proto_fractal_proto protoreflect.FileDescriptor
 
 const file_proto_fractal_proto_rawDesc = "" +
@@ -885,23 +983,31 @@ const file_proto_fractal_proto_rawDesc = "" +
 	"\x11ListFilesResponse\x12'\n" +
 	"\x05files\x18\x01 \x03(\v2\x11.fractal.FileInfoR\x05files\"1\n" +
 	"\x14RetrieveChunkRequest\x12\x19\n" +
-	"\bchunk_id\x18\x01 \x01(\tR\achunkId2\xf7\x03\n" +
-	"\rMasterService\x12E\n" +
+	"\bchunk_id\x18\x01 \x01(\tR\achunkId\".\n" +
+	"\x11CheckChunkRequest\x12\x19\n" +
+	"\bchunk_id\x18\x01 \x01(\tR\achunkId\"K\n" +
+	"\x12CheckChunkResponse\x12\x16\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists\x12\x1d\n" +
+	"\n" +
+	"syze_bytes\x18\x02 \x01(\x03R\tsyzeBytes2\xf7\x03\n" +
+	"\rMasterService\x12C\n" +
+	"\n" +
+	"CommitFile\x12\x1a.fractal.CommitFileRequest\x1a\x19.fractal.StandardResponse\x12E\n" +
 	"\n" +
 	"CreateFile\x12\x1a.fractal.CreateFileRequest\x1a\x1b.fractal.CreateFileResponse\x12C\n" +
 	"\n" +
-	"DeleteFile\x12\x1a.fractal.DeleteFileRequest\x1a\x19.fractal.StandardResponse\x12B\n" +
-	"\tListFiles\x12\x19.fractal.ListFilesRequest\x1a\x1a.fractal.ListFilesResponse\x12E\n" +
-	"\x10GetFileLocations\x12\x17.fractal.GetFileRequest\x1a\x18.fractal.GetFileResponse\x12C\n" +
+	"DeleteFile\x12\x1a.fractal.DeleteFileRequest\x1a\x19.fractal.StandardResponse\x12E\n" +
+	"\x10GetFileLocations\x12\x17.fractal.GetFileRequest\x1a\x18.fractal.GetFileResponse\x12B\n" +
+	"\tListFiles\x12\x19.fractal.ListFilesRequest\x1a\x1a.fractal.ListFilesResponse\x12A\n" +
+	"\rSendHeartbeat\x12\x15.fractal.HeartbeatMsg\x1a\x19.fractal.StandardResponse\x12G\n" +
+	"\fSwapFileName\x12\x1c.fractal.SwapFileNameRequest\x1a\x19.fractal.StandardResponse2\xa2\x02\n" +
+	"\rWorkerService\x12E\n" +
+	"\vDeleteChunk\x12\x1b.fractal.DeleteChunkRequest\x1a\x19.fractal.StandardResponse\x12D\n" +
+	"\rRetrieveChunk\x12\x1d.fractal.RetrieveChunkRequest\x1a\x12.fractal.ChunkData0\x01\x12=\n" +
 	"\n" +
-	"CommitFile\x12\x1a.fractal.CommitFileRequest\x1a\x19.fractal.StandardResponse\x12G\n" +
-	"\fSwapFileName\x12\x1c.fractal.SwapFileNameRequest\x1a\x19.fractal.StandardResponse\x12A\n" +
-	"\rSendHeartbeat\x12\x15.fractal.HeartbeatMsg\x1a\x19.fractal.StandardResponse2\xdb\x01\n" +
-	"\rWorkerService\x12=\n" +
+	"StoreChunk\x12\x12.fractal.ChunkData\x1a\x19.fractal.StandardResponse(\x01\x12E\n" +
 	"\n" +
-	"StoreChunk\x12\x12.fractal.ChunkData\x1a\x19.fractal.StandardResponse(\x01\x12D\n" +
-	"\rRetrieveChunk\x12\x1d.fractal.RetrieveChunkRequest\x1a\x12.fractal.ChunkData0\x01\x12E\n" +
-	"\vDeleteChunk\x12\x1b.fractal.DeleteChunkRequest\x1a\x19.fractal.StandardResponseB\x06Z\x04./pbb\x06proto3"
+	"CheckChunk\x12\x1a.fractal.CheckChunkRequest\x1a\x1b.fractal.CheckChunkResponseB\x06Z\x04./pbb\x06proto3"
 
 var (
 	file_proto_fractal_proto_rawDescOnce sync.Once
@@ -915,7 +1021,7 @@ func file_proto_fractal_proto_rawDescGZIP() []byte {
 	return file_proto_fractal_proto_rawDescData
 }
 
-var file_proto_fractal_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_proto_fractal_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_proto_fractal_proto_goTypes = []any{
 	(*StandardResponse)(nil),     // 0: fractal.StandardResponse
 	(*NodeList)(nil),             // 1: fractal.NodeList
@@ -933,40 +1039,44 @@ var file_proto_fractal_proto_goTypes = []any{
 	(*FileInfo)(nil),             // 13: fractal.FileInfo
 	(*ListFilesResponse)(nil),    // 14: fractal.ListFilesResponse
 	(*RetrieveChunkRequest)(nil), // 15: fractal.RetrieveChunkRequest
-	nil,                          // 16: fractal.CreateFileResponse.ChunkLocationsEntry
-	nil,                          // 17: fractal.CommitFileRequest.ChunkLocationsEntry
-	nil,                          // 18: fractal.GetFileResponse.ChunkLocationsEntry
+	(*CheckChunkRequest)(nil),    // 16: fractal.CheckChunkRequest
+	(*CheckChunkResponse)(nil),   // 17: fractal.CheckChunkResponse
+	nil,                          // 18: fractal.CreateFileResponse.ChunkLocationsEntry
+	nil,                          // 19: fractal.CommitFileRequest.ChunkLocationsEntry
+	nil,                          // 20: fractal.GetFileResponse.ChunkLocationsEntry
 }
 var file_proto_fractal_proto_depIdxs = []int32{
-	16, // 0: fractal.CreateFileResponse.chunk_locations:type_name -> fractal.CreateFileResponse.ChunkLocationsEntry
-	17, // 1: fractal.CommitFileRequest.chunk_locations:type_name -> fractal.CommitFileRequest.ChunkLocationsEntry
-	18, // 2: fractal.GetFileResponse.chunk_locations:type_name -> fractal.GetFileResponse.ChunkLocationsEntry
+	18, // 0: fractal.CreateFileResponse.chunk_locations:type_name -> fractal.CreateFileResponse.ChunkLocationsEntry
+	19, // 1: fractal.CommitFileRequest.chunk_locations:type_name -> fractal.CommitFileRequest.ChunkLocationsEntry
+	20, // 2: fractal.GetFileResponse.chunk_locations:type_name -> fractal.GetFileResponse.ChunkLocationsEntry
 	13, // 3: fractal.ListFilesResponse.files:type_name -> fractal.FileInfo
 	1,  // 4: fractal.CreateFileResponse.ChunkLocationsEntry.value:type_name -> fractal.NodeList
 	1,  // 5: fractal.CommitFileRequest.ChunkLocationsEntry.value:type_name -> fractal.NodeList
 	1,  // 6: fractal.GetFileResponse.ChunkLocationsEntry.value:type_name -> fractal.NodeList
-	3,  // 7: fractal.MasterService.CreateFile:input_type -> fractal.CreateFileRequest
-	8,  // 8: fractal.MasterService.DeleteFile:input_type -> fractal.DeleteFileRequest
-	12, // 9: fractal.MasterService.ListFiles:input_type -> fractal.ListFilesRequest
+	5,  // 7: fractal.MasterService.CommitFile:input_type -> fractal.CommitFileRequest
+	3,  // 8: fractal.MasterService.CreateFile:input_type -> fractal.CreateFileRequest
+	8,  // 9: fractal.MasterService.DeleteFile:input_type -> fractal.DeleteFileRequest
 	6,  // 10: fractal.MasterService.GetFileLocations:input_type -> fractal.GetFileRequest
-	5,  // 11: fractal.MasterService.CommitFile:input_type -> fractal.CommitFileRequest
-	10, // 12: fractal.MasterService.SwapFileName:input_type -> fractal.SwapFileNameRequest
-	11, // 13: fractal.MasterService.SendHeartbeat:input_type -> fractal.HeartbeatMsg
-	2,  // 14: fractal.WorkerService.StoreChunk:input_type -> fractal.ChunkData
+	12, // 11: fractal.MasterService.ListFiles:input_type -> fractal.ListFilesRequest
+	11, // 12: fractal.MasterService.SendHeartbeat:input_type -> fractal.HeartbeatMsg
+	10, // 13: fractal.MasterService.SwapFileName:input_type -> fractal.SwapFileNameRequest
+	9,  // 14: fractal.WorkerService.DeleteChunk:input_type -> fractal.DeleteChunkRequest
 	15, // 15: fractal.WorkerService.RetrieveChunk:input_type -> fractal.RetrieveChunkRequest
-	9,  // 16: fractal.WorkerService.DeleteChunk:input_type -> fractal.DeleteChunkRequest
-	4,  // 17: fractal.MasterService.CreateFile:output_type -> fractal.CreateFileResponse
-	0,  // 18: fractal.MasterService.DeleteFile:output_type -> fractal.StandardResponse
-	14, // 19: fractal.MasterService.ListFiles:output_type -> fractal.ListFilesResponse
-	7,  // 20: fractal.MasterService.GetFileLocations:output_type -> fractal.GetFileResponse
-	0,  // 21: fractal.MasterService.CommitFile:output_type -> fractal.StandardResponse
-	0,  // 22: fractal.MasterService.SwapFileName:output_type -> fractal.StandardResponse
+	2,  // 16: fractal.WorkerService.StoreChunk:input_type -> fractal.ChunkData
+	16, // 17: fractal.WorkerService.CheckChunk:input_type -> fractal.CheckChunkRequest
+	0,  // 18: fractal.MasterService.CommitFile:output_type -> fractal.StandardResponse
+	4,  // 19: fractal.MasterService.CreateFile:output_type -> fractal.CreateFileResponse
+	0,  // 20: fractal.MasterService.DeleteFile:output_type -> fractal.StandardResponse
+	7,  // 21: fractal.MasterService.GetFileLocations:output_type -> fractal.GetFileResponse
+	14, // 22: fractal.MasterService.ListFiles:output_type -> fractal.ListFilesResponse
 	0,  // 23: fractal.MasterService.SendHeartbeat:output_type -> fractal.StandardResponse
-	0,  // 24: fractal.WorkerService.StoreChunk:output_type -> fractal.StandardResponse
-	2,  // 25: fractal.WorkerService.RetrieveChunk:output_type -> fractal.ChunkData
-	0,  // 26: fractal.WorkerService.DeleteChunk:output_type -> fractal.StandardResponse
-	17, // [17:27] is the sub-list for method output_type
-	7,  // [7:17] is the sub-list for method input_type
+	0,  // 24: fractal.MasterService.SwapFileName:output_type -> fractal.StandardResponse
+	0,  // 25: fractal.WorkerService.DeleteChunk:output_type -> fractal.StandardResponse
+	2,  // 26: fractal.WorkerService.RetrieveChunk:output_type -> fractal.ChunkData
+	0,  // 27: fractal.WorkerService.StoreChunk:output_type -> fractal.StandardResponse
+	17, // 28: fractal.WorkerService.CheckChunk:output_type -> fractal.CheckChunkResponse
+	18, // [18:29] is the sub-list for method output_type
+	7,  // [7:18] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -983,7 +1093,7 @@ func file_proto_fractal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_fractal_proto_rawDesc), len(file_proto_fractal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

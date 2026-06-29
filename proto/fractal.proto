@@ -97,7 +97,6 @@ message ListFilesResponse {
     repeated FileInfo files = 1;
 }
 
-
 // ==========================================
 // WORKER NODE MESSAGES
 // ==========================================
@@ -107,27 +106,36 @@ message RetrieveChunkRequest {
     string chunk_id = 1;
 }
 
+// Client -> DataNode
+message CheckChunkRequest {
+  string chunk_id = 1;
+}
+
+// DataNode -> Client
+message CheckChunkResponse {
+    bool exists = 1;
+    int64 syze_bytes = 2;
+}
+
 // ==========================================
 // SERVICES (The RPC Verbs)
 // ==========================================
 
 // The API exposed by the Master Node
 service MasterService {
+    rpc CommitFile(CommitFileRequest) returns (StandardResponse);
     rpc CreateFile(CreateFileRequest) returns (CreateFileResponse);
     rpc DeleteFile(DeleteFileRequest) returns (StandardResponse);
-    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
     rpc GetFileLocations(GetFileRequest) returns (GetFileResponse);
-    rpc CommitFile(CommitFileRequest) returns (StandardResponse); // Call this AFTER Client uploads chunks
-    rpc SwapFileName(SwapFileNameRequest) returns (StandardResponse);
+    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
     rpc SendHeartbeat(HeartbeatMsg) returns (StandardResponse);
+    rpc SwapFileName(SwapFileNameRequest) returns (StandardResponse);
 }
 
 // The API exposed by the Worker Node
 service WorkerService {
-    // Client streams chunks TO the Worker
-    rpc StoreChunk(stream ChunkData) returns (StandardResponse);
-
-    // Client streams chunks FROM the Worker
-    rpc RetrieveChunk(RetrieveChunkRequest) returns (stream ChunkData);
     rpc DeleteChunk(DeleteChunkRequest) returns (StandardResponse);
+    rpc RetrieveChunk(RetrieveChunkRequest) returns (stream ChunkData);
+    rpc StoreChunk(stream ChunkData) returns (StandardResponse);
+    rpc CheckChunk(CheckChunkRequest) returns (CheckChunkResponse);
 }

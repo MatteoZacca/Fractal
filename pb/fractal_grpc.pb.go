@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	MasterService_CommitFile_FullMethodName       = "/fractal.MasterService/CommitFile"
 	MasterService_CreateFile_FullMethodName       = "/fractal.MasterService/CreateFile"
 	MasterService_DeleteFile_FullMethodName       = "/fractal.MasterService/DeleteFile"
-	MasterService_ListFiles_FullMethodName        = "/fractal.MasterService/ListFiles"
 	MasterService_GetFileLocations_FullMethodName = "/fractal.MasterService/GetFileLocations"
-	MasterService_CommitFile_FullMethodName       = "/fractal.MasterService/CommitFile"
-	MasterService_SwapFileName_FullMethodName     = "/fractal.MasterService/SwapFileName"
+	MasterService_ListFiles_FullMethodName        = "/fractal.MasterService/ListFiles"
 	MasterService_SendHeartbeat_FullMethodName    = "/fractal.MasterService/SendHeartbeat"
+	MasterService_SwapFileName_FullMethodName     = "/fractal.MasterService/SwapFileName"
 )
 
 // MasterServiceClient is the client API for MasterService service.
@@ -34,13 +34,13 @@ const (
 //
 // The API exposed by the Master Node
 type MasterServiceClient interface {
+	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*CreateFileResponse, error)
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
-	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
 	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
-	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
-	SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
 	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
+	SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 }
 
 type masterServiceClient struct {
@@ -49,6 +49,16 @@ type masterServiceClient struct {
 
 func NewMasterServiceClient(cc grpc.ClientConnInterface) MasterServiceClient {
 	return &masterServiceClient{cc}
+}
+
+func (c *masterServiceClient) CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_CommitFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *masterServiceClient) CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*CreateFileResponse, error) {
@@ -71,16 +81,6 @@ func (c *masterServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequ
 	return out, nil
 }
 
-func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFilesResponse)
-	err := c.cc.Invoke(ctx, MasterService_ListFiles_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *masterServiceClient) GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFileResponse)
@@ -91,20 +91,10 @@ func (c *masterServiceClient) GetFileLocations(ctx context.Context, in *GetFileR
 	return out, nil
 }
 
-func (c *masterServiceClient) CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+func (c *masterServiceClient) ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StandardResponse)
-	err := c.cc.Invoke(ctx, MasterService_CommitFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *masterServiceClient) SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StandardResponse)
-	err := c.cc.Invoke(ctx, MasterService_SwapFileName_FullMethodName, in, out, cOpts...)
+	out := new(ListFilesResponse)
+	err := c.cc.Invoke(ctx, MasterService_ListFiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -121,19 +111,29 @@ func (c *masterServiceClient) SendHeartbeat(ctx context.Context, in *HeartbeatMs
 	return out, nil
 }
 
+func (c *masterServiceClient) SwapFileName(ctx context.Context, in *SwapFileNameRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, MasterService_SwapFileName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterServiceServer is the server API for MasterService service.
 // All implementations must embed UnimplementedMasterServiceServer
 // for forward compatibility.
 //
 // The API exposed by the Master Node
 type MasterServiceServer interface {
+	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
 	CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error)
 	DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error)
-	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
 	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
-	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
-	SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error)
+	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
 	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
+	SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error)
 	mustEmbedUnimplementedMasterServiceServer()
 }
 
@@ -144,26 +144,26 @@ type MasterServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMasterServiceServer struct{}
 
+func (UnimplementedMasterServiceServer) CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CommitFile not implemented")
+}
 func (UnimplementedMasterServiceServer) CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateFile not implemented")
 }
 func (UnimplementedMasterServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFile not implemented")
 }
-func (UnimplementedMasterServiceServer) ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFiles not implemented")
-}
 func (UnimplementedMasterServiceServer) GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileLocations not implemented")
 }
-func (UnimplementedMasterServiceServer) CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CommitFile not implemented")
-}
-func (UnimplementedMasterServiceServer) SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method SwapFileName not implemented")
+func (UnimplementedMasterServiceServer) ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFiles not implemented")
 }
 func (UnimplementedMasterServiceServer) SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SendHeartbeat not implemented")
+}
+func (UnimplementedMasterServiceServer) SwapFileName(context.Context, *SwapFileNameRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SwapFileName not implemented")
 }
 func (UnimplementedMasterServiceServer) mustEmbedUnimplementedMasterServiceServer() {}
 func (UnimplementedMasterServiceServer) testEmbeddedByValue()                       {}
@@ -184,6 +184,24 @@ func RegisterMasterServiceServer(s grpc.ServiceRegistrar, srv MasterServiceServe
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&MasterService_ServiceDesc, srv)
+}
+
+func _MasterService_CommitFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).CommitFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_CommitFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).CommitFile(ctx, req.(*CommitFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _MasterService_CreateFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -222,24 +240,6 @@ func _MasterService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterService_ListFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFilesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterServiceServer).ListFiles(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterService_ListFiles_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).ListFiles(ctx, req.(*ListFilesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MasterService_GetFileLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFileRequest)
 	if err := dec(in); err != nil {
@@ -258,38 +258,20 @@ func _MasterService_GetFileLocations_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterService_CommitFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CommitFileRequest)
+func _MasterService_ListFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFilesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MasterServiceServer).CommitFile(ctx, in)
+		return srv.(MasterServiceServer).ListFiles(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MasterService_CommitFile_FullMethodName,
+		FullMethod: MasterService_ListFiles_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).CommitFile(ctx, req.(*CommitFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _MasterService_SwapFileName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SwapFileNameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MasterServiceServer).SwapFileName(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MasterService_SwapFileName_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterServiceServer).SwapFileName(ctx, req.(*SwapFileNameRequest))
+		return srv.(MasterServiceServer).ListFiles(ctx, req.(*ListFilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -312,6 +294,24 @@ func _MasterService_SendHeartbeat_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterService_SwapFileName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SwapFileNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).SwapFileName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_SwapFileName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).SwapFileName(ctx, req.(*SwapFileNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MasterService_ServiceDesc is the grpc.ServiceDesc for MasterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -319,6 +319,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "fractal.MasterService",
 	HandlerType: (*MasterServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CommitFile",
+			Handler:    _MasterService_CommitFile_Handler,
+		},
 		{
 			MethodName: "CreateFile",
 			Handler:    _MasterService_CreateFile_Handler,
@@ -328,24 +332,20 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MasterService_DeleteFile_Handler,
 		},
 		{
-			MethodName: "ListFiles",
-			Handler:    _MasterService_ListFiles_Handler,
-		},
-		{
 			MethodName: "GetFileLocations",
 			Handler:    _MasterService_GetFileLocations_Handler,
 		},
 		{
-			MethodName: "CommitFile",
-			Handler:    _MasterService_CommitFile_Handler,
-		},
-		{
-			MethodName: "SwapFileName",
-			Handler:    _MasterService_SwapFileName_Handler,
+			MethodName: "ListFiles",
+			Handler:    _MasterService_ListFiles_Handler,
 		},
 		{
 			MethodName: "SendHeartbeat",
 			Handler:    _MasterService_SendHeartbeat_Handler,
+		},
+		{
+			MethodName: "SwapFileName",
+			Handler:    _MasterService_SwapFileName_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -353,9 +353,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	WorkerService_StoreChunk_FullMethodName    = "/fractal.WorkerService/StoreChunk"
-	WorkerService_RetrieveChunk_FullMethodName = "/fractal.WorkerService/RetrieveChunk"
 	WorkerService_DeleteChunk_FullMethodName   = "/fractal.WorkerService/DeleteChunk"
+	WorkerService_RetrieveChunk_FullMethodName = "/fractal.WorkerService/RetrieveChunk"
+	WorkerService_StoreChunk_FullMethodName    = "/fractal.WorkerService/StoreChunk"
+	WorkerService_CheckChunk_FullMethodName    = "/fractal.WorkerService/CheckChunk"
 )
 
 // WorkerServiceClient is the client API for WorkerService service.
@@ -364,11 +365,10 @@ const (
 //
 // The API exposed by the Worker Node
 type WorkerServiceClient interface {
-	// Client streams chunks TO the Worker
-	StoreChunk(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChunkData, StandardResponse], error)
-	// Client streams chunks FROM the Worker
-	RetrieveChunk(ctx context.Context, in *RetrieveChunkRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChunkData], error)
 	DeleteChunk(ctx context.Context, in *DeleteChunkRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	RetrieveChunk(ctx context.Context, in *RetrieveChunkRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChunkData], error)
+	StoreChunk(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChunkData, StandardResponse], error)
+	CheckChunk(ctx context.Context, in *CheckChunkRequest, opts ...grpc.CallOption) (*CheckChunkResponse, error)
 }
 
 type workerServiceClient struct {
@@ -379,22 +379,19 @@ func NewWorkerServiceClient(cc grpc.ClientConnInterface) WorkerServiceClient {
 	return &workerServiceClient{cc}
 }
 
-func (c *workerServiceClient) StoreChunk(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChunkData, StandardResponse], error) {
+func (c *workerServiceClient) DeleteChunk(ctx context.Context, in *DeleteChunkRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[0], WorkerService_StoreChunk_FullMethodName, cOpts...)
+	out := new(StandardResponse)
+	err := c.cc.Invoke(ctx, WorkerService_DeleteChunk_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ChunkData, StandardResponse]{ClientStream: stream}
-	return x, nil
+	return out, nil
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type WorkerService_StoreChunkClient = grpc.ClientStreamingClient[ChunkData, StandardResponse]
 
 func (c *workerServiceClient) RetrieveChunk(ctx context.Context, in *RetrieveChunkRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChunkData], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[1], WorkerService_RetrieveChunk_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[0], WorkerService_RetrieveChunk_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -411,10 +408,23 @@ func (c *workerServiceClient) RetrieveChunk(ctx context.Context, in *RetrieveChu
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type WorkerService_RetrieveChunkClient = grpc.ServerStreamingClient[ChunkData]
 
-func (c *workerServiceClient) DeleteChunk(ctx context.Context, in *DeleteChunkRequest, opts ...grpc.CallOption) (*StandardResponse, error) {
+func (c *workerServiceClient) StoreChunk(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ChunkData, StandardResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StandardResponse)
-	err := c.cc.Invoke(ctx, WorkerService_DeleteChunk_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[1], WorkerService_StoreChunk_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChunkData, StandardResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type WorkerService_StoreChunkClient = grpc.ClientStreamingClient[ChunkData, StandardResponse]
+
+func (c *workerServiceClient) CheckChunk(ctx context.Context, in *CheckChunkRequest, opts ...grpc.CallOption) (*CheckChunkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckChunkResponse)
+	err := c.cc.Invoke(ctx, WorkerService_CheckChunk_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -427,11 +437,10 @@ func (c *workerServiceClient) DeleteChunk(ctx context.Context, in *DeleteChunkRe
 //
 // The API exposed by the Worker Node
 type WorkerServiceServer interface {
-	// Client streams chunks TO the Worker
-	StoreChunk(grpc.ClientStreamingServer[ChunkData, StandardResponse]) error
-	// Client streams chunks FROM the Worker
-	RetrieveChunk(*RetrieveChunkRequest, grpc.ServerStreamingServer[ChunkData]) error
 	DeleteChunk(context.Context, *DeleteChunkRequest) (*StandardResponse, error)
+	RetrieveChunk(*RetrieveChunkRequest, grpc.ServerStreamingServer[ChunkData]) error
+	StoreChunk(grpc.ClientStreamingServer[ChunkData, StandardResponse]) error
+	CheckChunk(context.Context, *CheckChunkRequest) (*CheckChunkResponse, error)
 	mustEmbedUnimplementedWorkerServiceServer()
 }
 
@@ -442,14 +451,17 @@ type WorkerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedWorkerServiceServer struct{}
 
-func (UnimplementedWorkerServiceServer) StoreChunk(grpc.ClientStreamingServer[ChunkData, StandardResponse]) error {
-	return status.Error(codes.Unimplemented, "method StoreChunk not implemented")
+func (UnimplementedWorkerServiceServer) DeleteChunk(context.Context, *DeleteChunkRequest) (*StandardResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteChunk not implemented")
 }
 func (UnimplementedWorkerServiceServer) RetrieveChunk(*RetrieveChunkRequest, grpc.ServerStreamingServer[ChunkData]) error {
 	return status.Error(codes.Unimplemented, "method RetrieveChunk not implemented")
 }
-func (UnimplementedWorkerServiceServer) DeleteChunk(context.Context, *DeleteChunkRequest) (*StandardResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteChunk not implemented")
+func (UnimplementedWorkerServiceServer) StoreChunk(grpc.ClientStreamingServer[ChunkData, StandardResponse]) error {
+	return status.Error(codes.Unimplemented, "method StoreChunk not implemented")
+}
+func (UnimplementedWorkerServiceServer) CheckChunk(context.Context, *CheckChunkRequest) (*CheckChunkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckChunk not implemented")
 }
 func (UnimplementedWorkerServiceServer) mustEmbedUnimplementedWorkerServiceServer() {}
 func (UnimplementedWorkerServiceServer) testEmbeddedByValue()                       {}
@@ -472,24 +484,6 @@ func RegisterWorkerServiceServer(s grpc.ServiceRegistrar, srv WorkerServiceServe
 	s.RegisterService(&WorkerService_ServiceDesc, srv)
 }
 
-func _WorkerService_StoreChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(WorkerServiceServer).StoreChunk(&grpc.GenericServerStream[ChunkData, StandardResponse]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type WorkerService_StoreChunkServer = grpc.ClientStreamingServer[ChunkData, StandardResponse]
-
-func _WorkerService_RetrieveChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(RetrieveChunkRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(WorkerServiceServer).RetrieveChunk(m, &grpc.GenericServerStream[RetrieveChunkRequest, ChunkData]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type WorkerService_RetrieveChunkServer = grpc.ServerStreamingServer[ChunkData]
-
 func _WorkerService_DeleteChunk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteChunkRequest)
 	if err := dec(in); err != nil {
@@ -508,6 +502,42 @@ func _WorkerService_DeleteChunk_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkerService_RetrieveChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(RetrieveChunkRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkerServiceServer).RetrieveChunk(m, &grpc.GenericServerStream[RetrieveChunkRequest, ChunkData]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type WorkerService_RetrieveChunkServer = grpc.ServerStreamingServer[ChunkData]
+
+func _WorkerService_StoreChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(WorkerServiceServer).StoreChunk(&grpc.GenericServerStream[ChunkData, StandardResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type WorkerService_StoreChunkServer = grpc.ClientStreamingServer[ChunkData, StandardResponse]
+
+func _WorkerService_CheckChunk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckChunkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkerServiceServer).CheckChunk(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkerService_CheckChunk_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkerServiceServer).CheckChunk(ctx, req.(*CheckChunkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkerService_ServiceDesc is the grpc.ServiceDesc for WorkerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -519,17 +549,21 @@ var WorkerService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteChunk",
 			Handler:    _WorkerService_DeleteChunk_Handler,
 		},
+		{
+			MethodName: "CheckChunk",
+			Handler:    _WorkerService_CheckChunk_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "StoreChunk",
-			Handler:       _WorkerService_StoreChunk_Handler,
-			ClientStreams: true,
-		},
 		{
 			StreamName:    "RetrieveChunk",
 			Handler:       _WorkerService_RetrieveChunk_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "StoreChunk",
+			Handler:       _WorkerService_StoreChunk_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "proto/fractal.proto",
