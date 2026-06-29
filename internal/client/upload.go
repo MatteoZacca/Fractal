@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/MatteoZacca/Fractal/pb"
 )
@@ -13,6 +14,7 @@ import (
 const (
 	StorageChunkSize = 64 * 1024 * 1024 // 64MB
 	StreamChunkSize  = 64 * 1024        // 64KB
+	WriteQuorum      = 2
 )
 
 func uploadFile(localFilePath string, targetFileName string) {
@@ -41,13 +43,11 @@ func uploadFile(localFilePath string, targetFileName string) {
 		FilePath: targetFileName,
 		FileSize: fileSize,
 	})
-
 	if err != nil {
-		log.Fatalf("NameNode reject upload: %v", err)
+		log.Fatalf("NameNode rejected upload: %v", err)
 	}
 
-	chunksMapping := res.ChunkLocations
-	log.Printf("File split into into %d chunks", len(chunksMapping))
+	log.Printf("File split into into %d chunks", len(res.ChunkLocations))
 
 	// Stream to DataNodes
 	var chunkIDs []string
@@ -57,35 +57,71 @@ func uploadFile(localFilePath string, targetFileName string) {
 		chunkIDs = append(chunkIDs, chunkID)
 		startOffset := currentChunkIndex * StorageChunkSize
 
+		log.Printf("Broadcasting %s to %d nodes...", chunkID, len(nodeList.WorkerIps))
+
+		// QUORUM CONSENSUS LOGIC
+
+		// buffered channel to collect results without blocking goroutines
+		outcomes := make(chan error, len(nodeList.WorkerIps))
+		var wg sync.WaitGroup
+
 		for _, dataNodeIP := range nodeList.WorkerIps {
-			log.Printf("Streaming %s to DataNode at %s...", chunkID, resolveLocalAddress(dataNodeIP))
+			wg.Add(1)
+			go func(ip string) {
+				defer wg.Done()
+				err := uploadChunkToDataNode(localFilePath, startOffset, chunkID, ip)
+				outcomes <- err
+			}(dataNodeIP)
+		}
 
-			_, err := file.Seek(startOffset, io.SeekStart)
-			if err != nil {
-				log.Fatalf("Failed to seek file playhead: %v", err)
-			}
+		successWrites := 0
+		var errors []error
 
-			if err := uploadChunkToDataNode(file, chunkID, dataNodeIP); err != nil {
-				log.Fatalf("Failed to upload to %s: %v", dataNodeIP, err)
+		for i := 0; i < len(nodeList.WorkerIps); i++ {
+			err := <-outcomes
+			if err == nil {
+				successWrites++
+				if successWrites >= WriteQuorum {
+					log.Printf("Quorum reached for %s", chunkID)
+					break // DOESN'T CARE ABOUT THE 3RD NODE
+				}
+			} else {
+				errors = append(errors, err)
 			}
+		}
+
+		if successWrites < WriteQuorum {
+			log.Fatalf("FAILURE: could not reach Write Quorum for %s: %v", chunkID, errors)
 		}
 
 		currentChunkIndex++
 	}
 
-	// Commit the file
+	// Commit the file to NameNode
 	_, err = masterClient.CommitFile(context.Background(), &pb.CommitFileRequest{
 		FilePath:       targetFileName,
 		ChunkIds:       chunkIDs,
 		ChunkLocations: res.ChunkLocations,
 	})
 	if err != nil {
-		log.Fatalf("Failed to commit: %v", err)
+		log.Fatalf("failed to commit to NameNode: %v", err)
 	}
-	log.Printf("Success! File %s is safely stored.", targetFileName)
+	log.Printf("SUCCESS: file %s is safely stored.", targetFileName)
 }
 
-func uploadChunkToDataNode(file *os.File, chunkID string, dataNodeIP string) error {
+func uploadChunkToDataNode(localFilePath string, startOffset int64, chunkID string, dataNodeIP string) error {
+
+	file, err := os.Open(localFilePath)
+	if err != nil {
+		return fmt.Errorf("could not open file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.Seek(startOffset, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("failed to seek file playhead: %v", err)
+	}
+
 	// Connect to DataNode
 	dataNodeClient, conn, err := getDataNodeClient(dataNodeIP)
 	if err != nil {
