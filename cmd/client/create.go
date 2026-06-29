@@ -1,8 +1,9 @@
-package client
+package main
 
 import (
 	"path/filepath"
 
+	"github.com/MatteoZacca/Fractal/internal/client"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		localPath := args[0]
 		targetFileName := filepath.Base(localPath)
-		uploadFile(localPath, targetFileName)
+		client.UploadFile(localPath, targetFileName)
 	},
 }
 

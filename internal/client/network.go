@@ -2,25 +2,12 @@ package client
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/MatteoZacca/Fractal/pb"
-	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
-
-var rootCmd = &cobra.Command{
-	Use:   "fractal",
-	Short: "CLI for Fractal distributed file system",
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
-}
 
 func resolveLocalAddress(dockerAddress string) string {
 	parts := strings.Split(dockerAddress, ":")

@@ -17,7 +17,7 @@ const (
 	WriteQuorum      = 2
 )
 
-func uploadFile(localFilePath string, targetFileName string) {
+func UploadFile(localFilePath string, targetFileName string) {
 	file, err := os.Open(localFilePath)
 	if err != nil {
 		log.Fatalf("could not open file: %v", err)
