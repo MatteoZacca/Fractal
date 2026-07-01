@@ -4,10 +4,13 @@ package master
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"time"
 )
+
+const FilePermissions = 0644 // Read/Write for owner; Read for others
 
 // Worker
 type DataNode struct {
@@ -46,7 +49,7 @@ func (m *MetadataStore) SaveToDisk(filePath string) error {
 	}
 
 	// Write the bytes to the hard drive
-	err = os.WriteFile(filePath, data, 0644)
+	err = os.WriteFile(filePath, data, FilePermissions)
 	if err != nil {
 		return fmt.Errorf("failed to write metadata to disk: %v", err)
 	}
@@ -57,12 +60,21 @@ func (m *MetadataStore) LoadFromDisk(filePath string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		log.Printf("namespace.json not found. Creating a fresh skeleton...")
+
+		emptyNameSpace, err := json.MarshalIndent(m, "", "")
+		if err != nil {
+			return fmt.Errorf("failedmarshal initial namespace: %v", err)
+		}
+
+		if writeErr := os.WriteFile(filePath, emptyNameSpace, 0644); writeErr != nil {
+			return fmt.Errorf("cannot write to disk: %v", writeErr)
+		}
+	}
+
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			// If the file doesn't exist yet, it's just a fresh boot
-			return nil
-		}
 		return fmt.Errorf("failed to read metadata file: %v", err)
 	}
 

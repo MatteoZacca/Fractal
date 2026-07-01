@@ -6,6 +6,7 @@ package master
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/MatteoZacca/Fractal/pb"
@@ -25,13 +26,19 @@ const (
 // DataNode -> NameNode
 func (n *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb.StandardResponse, error) {
 	n.Metadata.mu.Lock()
-	defer n.Metadata.mu.Unlock()
 
 	n.Metadata.DataNodes[req.NodeId] = &DataNode{
 		NodeID:        req.NodeId,
 		Address:       req.Address,
 		RackID:        req.RackId,
 		LastHeartbeat: time.Now(),
+	}
+
+	n.Metadata.mu.Unlock()
+
+	err := n.Metadata.SaveToDisk(MetadataFile)
+	if err != nil {
+		log.Printf("failed to save heartbeat to disk: %v", err)
 	}
 
 	return &pb.StandardResponse{Success: true}, nil

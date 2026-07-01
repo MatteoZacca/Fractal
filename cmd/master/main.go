@@ -13,7 +13,7 @@ import (
 func main() {
 	port := os.Getenv("MASTER_PORT")
 	if port == "" {
-		port = ":9000"
+		port = "9000"
 	}
 	masterPort := ":" + port
 
