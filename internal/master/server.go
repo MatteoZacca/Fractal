@@ -30,7 +30,7 @@ func (n *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb
 	n.Metadata.DataNodes[req.NodeId] = &DataNode{
 		NodeID:        req.NodeId,
 		Address:       req.Address,
-		RackID:        "rack-1", // hardcoded for now until HDFS logic is implemented
+		RackID:        req.RackId,
 		LastHeartbeat: time.Now(),
 	}
 
