@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+const DirPermissions = 0755 // Read/Write/Execute for owner, Read/Execute for others
 
 func main() {
 

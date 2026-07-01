@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+	DirPermissions = 0755 // Read/Write/Execute for owner, Read/Execute for others
 	ZeroBytes      = 0
 )
 

@@ -13,7 +13,7 @@ import (
 
 const (
 	DownloadsDir   = "downloads"
-	DirPermissions = os.FileMode(0755) // Read/Write/Execute for owner, Read/Execute for others
+	DirPermissions = 0755 // Read/Write/Execute for owner, Read/Execute for others
 )
 
 func DownloadFile(fileName string) {
