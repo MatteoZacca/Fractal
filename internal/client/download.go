@@ -30,7 +30,7 @@ func DownloadFile(fileName string) {
 		FilePath: fileName,
 	})
 	if err != nil {
-		log.Fatalf("error localiting file: %v", err)
+		log.Fatalf("error locating file: %v", err)
 	}
 
 	// Create 'downloads' directory and output file
@@ -49,30 +49,39 @@ func DownloadFile(fileName string) {
 
 	// Download and stitch the chunks in correct order
 	totalChunks := len(res.ChunkLocations)
-	log.Printf("blueprint received! file is split into %d chunks. starting assemply...", totalChunks)
+	log.Printf("blueprint received! file is split into %d chunks. starting assembly...", totalChunks)
 
-	for i := 0; i < totalChunks; i++ {
-		chunkID := fmt.Sprintf("%s-chunk-%d", fileName, i)
-		nodeList, exists := res.ChunkLocations[chunkID]
-		if !exists {
-			log.Fatalf("Blueprint is missing %s!", chunkID)
-		}
+	var currentChunkIndex int64 = 0
 
-		chunkDownloaded := false
-		for _, dataNodeIP := range nodeList.WorkerIps {
-			log.Printf("Pulling %s from %s...", chunkID, dataNodeIP)
-			err := downloadChunk(dataNodeIP, chunkID, outputFile)
+	for i := range totalChunks {
+		var targetChunkID string
+		var targetNodes []string
+		suffix := fmt.Sprintf("-chunk-%d", i)
 
-			if err == nil {
-				chunkDownloaded = true
+		for id, nodeList := range res.ChunkLocations {
+			if len(id) >= len(suffix) && id[len(id)-len(suffix):] == suffix {
+				targetChunkID = id
+				targetNodes = nodeList.WorkerIps
 				break
 			}
-			log.Printf("failed to download from %s, trying next replica...: %v", dataNodeIP, err)
 		}
 
-		if !chunkDownloaded {
-			log.Fatalf("failed to download %s from all available replicas. Cluster has lost data!", chunkID)
+		if targetChunkID == "" {
+			log.Fatalf("Blueprint is missing chunk index %d!", i)
 		}
+
+		startOffset := currentChunkIndex * StorageChunkSize
+
+		log.Printf("Pulling %s (enforcing R=2 Quorum)...", targetChunkID)
+
+		// Pass outputPath so Read Repair can read the bytes back from the hard drive if needed
+		err := downloadChunkWithQuorum(outputPath, startOffset, targetChunkID, targetNodes, outputFile)
+
+		if err != nil {
+			log.Fatalf("Cluster failed to serve data: %v", err)
+		}
+
+		currentChunkIndex++
 	}
 
 	log.Printf("Success! File fully reassembled and saved as '%s'", outputPath)
