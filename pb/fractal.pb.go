@@ -875,7 +875,7 @@ func (x *CheckChunkRequest) GetChunkId() string {
 type CheckChunkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Exists        bool                   `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
-	SyzeBytes     int64                  `protobuf:"varint,2,opt,name=syze_bytes,json=syzeBytes,proto3" json:"syze_bytes,omitempty"`
+	SizeBytes     int64                  `protobuf:"varint,2,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -917,9 +917,9 @@ func (x *CheckChunkResponse) GetExists() bool {
 	return false
 }
 
-func (x *CheckChunkResponse) GetSyzeBytes() int64 {
+func (x *CheckChunkResponse) GetSizeBytes() int64 {
 	if x != nil {
-		return x.SyzeBytes
+		return x.SizeBytes
 	}
 	return 0
 }
@@ -989,7 +989,7 @@ const file_proto_fractal_proto_rawDesc = "" +
 	"\x12CheckChunkResponse\x12\x16\n" +
 	"\x06exists\x18\x01 \x01(\bR\x06exists\x12\x1d\n" +
 	"\n" +
-	"syze_bytes\x18\x02 \x01(\x03R\tsyzeBytes2\xf7\x03\n" +
+	"size_bytes\x18\x02 \x01(\x03R\tsizeBytes2\xf7\x03\n" +
 	"\rMasterService\x12C\n" +
 	"\n" +
 	"CommitFile\x12\x1a.fractal.CommitFileRequest\x1a\x19.fractal.StandardResponse\x12E\n" +
