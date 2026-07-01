@@ -19,7 +19,64 @@ type WorkerServer struct {
 	DiskManager *DiskManager
 }
 
-// Client -> Worker (Upload)
+// Client -> Worker
+func (s *WorkerServer) ChechChunk(ctx context.Context, req *pb.CheckChunkRequest) (*pb.CheckChunkResponse, error) {
+	// Asks the DiskManager for the metadata
+	size, exists, err := s.DiskManager.RequestChunkSize(req.ChunkId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.CheckChunkResponse{
+		Exists:    exists,
+		SizeBytes: size,
+	}, nil
+}
+
+// Client -> Worker
+func (s *WorkerServer) DeleteChunk(ctx context.Context, req *pb.DeleteChunkRequest) (*pb.StandardResponse, error) {
+	// Ask DiskManager to destroy the file
+	err := s.DiskManager.DeleteChunk(req.ChunkId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.StandardResponse{Success: true}, nil
+}
+
+// Client <- Worker
+func (s *WorkerServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.ServerStreamingServer[pb.ChunkData]) error {
+	// Ask DiskManager to fetch the file pointer
+	file, err := s.DiskManager.OpenChunk(req.ChunkId)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	buffer := make([]byte, bufferSize)
+
+	for {
+		bytesRead, err := file.Read(buffer)
+		if err == io.EOF {
+			break // Done reading
+		}
+		if err != nil {
+			return fmt.Errorf("failed to read chunk from disk: %v", err)
+		}
+
+		// Send the piece over the network
+		sendErr := stream.Send(&pb.ChunkData{
+			ChunkId: req.ChunkId,
+			Data:    buffer[:bytesRead],
+		})
+		if sendErr != nil {
+			return fmt.Errorf("failed to send chunk data: %v", sendErr)
+		}
+	}
+	return nil
+}
+
+// Client -> Worker
 func (s *WorkerServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData, pb.StandardResponse]) error {
 	var file *os.File
 
@@ -52,47 +109,4 @@ func (s *WorkerServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData
 			return fmt.Errorf("failed to write to disk: %v", err)
 		}
 	}
-}
-
-// Client <- Worker (Download)
-func (s *WorkerServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.ServerStreamingServer[pb.ChunkData]) error {
-	// Ask DiskManager to fetch the file pointer
-	file, err := s.DiskManager.OpenChunk(req.ChunkId)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	buffer := make([]byte, bufferSize)
-
-	for {
-		bytesRead, err := file.Read(buffer)
-		if err == io.EOF {
-			break // Done reading
-		}
-		if err != nil {
-			return fmt.Errorf("failed to read chunk from disk: %v", err)
-		}
-
-		// Send the piece over the network
-		sendErr := stream.Send(&pb.ChunkData{
-			ChunkId: req.ChunkId,
-			Data:    buffer[:bytesRead],
-		})
-		if sendErr != nil {
-			return fmt.Errorf("failed to send chunk data: %v", sendErr)
-		}
-	}
-	return nil
-}
-
-// Client -> Worker (Delete)
-func (s *WorkerServer) DeleteChunk(ctx context.Context, req *pb.DeleteChunkRequest) (*pb.StandardResponse, error) {
-	// Ask DiskManager to destroy the file
-	err := s.DiskManager.DeleteChunk(req.ChunkId)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.StandardResponse{Success: true}, nil
 }

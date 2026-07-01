@@ -37,17 +37,6 @@ func (d *DiskManager) CreateChunk(chunkID string) (*os.File, error) {
 	return file, err
 }
 
-// OpenChunk opens an existing file and returns the file pointer for reading
-func (d *DiskManager) OpenChunk(chunkID string) (*os.File, error) {
-	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
-
-	file, err := os.Open(chunkPath)
-	if err != nil {
-		return nil, fmt.Errorf("chunk not found on this node: %v", err)
-	}
-	return file, nil
-}
-
 // DeleteChunk permanently removes the file from the hard drive
 func (d *DiskManager) DeleteChunk(chunkID string) error {
 	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
@@ -57,6 +46,17 @@ func (d *DiskManager) DeleteChunk(chunkID string) error {
 		return fmt.Errorf("failed to delete chunk from disk: %v", err)
 	}
 	return nil
+}
+
+// OpenChunk opens an existing file and returns the file pointer for reading
+func (d *DiskManager) OpenChunk(chunkID string) (*os.File, error) {
+	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
+
+	file, err := os.Open(chunkPath)
+	if err != nil {
+		return nil, fmt.Errorf("chunk not found on this node: %v", err)
+	}
+	return file, nil
 }
 
 // StatChunk checks if a chunk exists and returns its size in bytes without opening it
