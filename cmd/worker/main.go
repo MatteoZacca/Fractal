@@ -105,9 +105,9 @@ func startHeartbeat(client pb.MasterServiceClient, nodeID string, dataNodeAddres
 		_, err := client.SendHeartbeat(context.Background(), &pb.HeartbeatMsg{
 			NodeId:         nodeID,
 			Address:        dataNodeAddress,
-			DiskUsage:      0,          // TODO: We will calculate this later
-			DiskCapacity:   1000000000, // Fake 1GB capacity for now
-			StoredChunkIds: []string{}, // TODO: We will scan the folder for these later
+			DiskUsage:      0,          // TODO -> Load Balancing
+			DiskCapacity:   0,          // TODO -> Load Balancing
+			StoredChunkIds: []string{}, // TODO -> Garbage Collection
 			RackId:         rackID,
 		})
 
