@@ -9,7 +9,7 @@ import (
 	"github.com/MatteoZacca/Fractal/pb"
 )
 
-func UpdateFile(localPath string, dockerFileName string) {
+func UpdateFile(localPath string, dockerFileName string) error {
 	versionStamp := time.Now().Unix()
 	tmpName := fmt.Sprintf("v%d_%s", versionStamp, dockerFileName)
 
@@ -18,7 +18,7 @@ func UpdateFile(localPath string, dockerFileName string) {
 	// Connect to NameNode
 	masterClient, conn, err := getNameNodeClient()
 	if err != nil {
-		log.Fatalf("failed to connect to NameNode: %v", err)
+		return fmt.Errorf("failed to connect to NameNode: %v", err)
 	}
 
 	oldChunks, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
@@ -26,7 +26,7 @@ func UpdateFile(localPath string, dockerFileName string) {
 	})
 	if err != nil {
 		conn.Close()
-		log.Fatalf("'%s' doesn't exist. Use 'create' to upload a new file.", dockerFileName)
+		return fmt.Errorf("'%s' doesn't exist. Use 'create' to upload a new file.", dockerFileName)
 	}
 
 	UploadFile(localPath, tmpName)
@@ -37,7 +37,7 @@ func UpdateFile(localPath string, dockerFileName string) {
 	})
 	if err != nil {
 		conn.Close()
-		log.Fatalf("error during metadata swap: %v", err)
+		fmt.Errorf("error during metadata swap: %v", err)
 	}
 
 	log.Printf("Update completed! Cleaning up old orphaned chunks in the background...")
@@ -52,4 +52,6 @@ func UpdateFile(localPath string, dockerFileName string) {
 
 	conn.Close()
 	log.Printf("'%s' has been correctly updated.", dockerFileName)
+
+	return nil
 }

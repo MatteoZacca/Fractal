@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"path/filepath"
 
 	"github.com/MatteoZacca/Fractal/internal/client"
@@ -15,7 +16,10 @@ var updateCmd = &cobra.Command{
 		localPath := args[0]
 		dockerFileName := filepath.Base(localPath)
 
-		client.UpdateFile(localPath, dockerFileName)
+		err := client.UpdateFile(localPath, dockerFileName)
+		if err != nil {
+			log.Fatalf("[update] command failed: %v", err)
+		}
 	},
 }
 
