@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"path/filepath"
 
 	"github.com/MatteoZacca/Fractal/internal/client"
@@ -14,7 +15,11 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		localPath := args[0]
 		targetFileName := filepath.Base(localPath)
-		client.UploadFile(localPath, targetFileName)
+
+		err := client.UploadFile(localPath, targetFileName)
+		if err != nil {
+			log.Fatalf("create command failed: %v", err)
+		}
 	},
 }
 

@@ -15,16 +15,16 @@ const (
 	StreamChunkSize  = 64 * 1024        // 64KB
 )
 
-func UploadFile(localPath string, targetFileName string) {
+func UploadFile(localPath string, targetFileName string) error {
 	file, err := os.Open(localPath)
 	if err != nil {
-		log.Fatalf("could not open file: %v", err)
+		fmt.Errorf("could not open file: %v", err)
 	}
 	defer file.Close()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		log.Fatalf("could not get file info: %v", err)
+		return fmt.Errorf("could not get file info: %v", err)
 	}
 	fileSize := fileInfo.Size()
 
@@ -33,7 +33,7 @@ func UploadFile(localPath string, targetFileName string) {
 	// Connect to the NameNode
 	masterClient, conn, err := getNameNodeClient()
 	if err != nil {
-		log.Fatalf("failed to connect to NameNode: %v", err)
+		return fmt.Errorf("failed to connect to NameNode: %v", err)
 	}
 	defer conn.Close()
 
@@ -42,7 +42,7 @@ func UploadFile(localPath string, targetFileName string) {
 		FileSize: fileSize,
 	})
 	if err != nil {
-		log.Fatalf("NameNode rejected upload: %v", err)
+		return fmt.Errorf("NameNode rejected upload: %v", err)
 	}
 
 	log.Printf("File split into into %d chunks", len(res.ChunkLocations))
@@ -60,7 +60,7 @@ func UploadFile(localPath string, targetFileName string) {
 		// QUORUM CONSENSUS LOGIC
 		err := uploadChunkWithQuorum(localPath, startOffset, chunkID, nodeList.WorkerIps)
 		if err != nil {
-			log.Fatalf("FAILURE: something in uploadChunkWithQuorum went wrong...")
+			fmt.Errorf("FAILURE: something in uploadChunkWithQuorum went wrong...")
 		}
 
 		currentChunkIndex++
@@ -73,9 +73,11 @@ func UploadFile(localPath string, targetFileName string) {
 		ChunkLocations: res.ChunkLocations,
 	})
 	if err != nil {
-		log.Fatalf("failed to commit to NameNode: %v", err)
+		return fmt.Errorf("failed to commit to NameNode: %v", err)
 	}
 	log.Printf("SUCCESS: file %s is safely stored.", targetFileName)
+
+	return nil
 }
 
 func uploadChunkToDataNode(localFilePath string, startOffset int64, chunkID string, dataNodeIP string) error {
