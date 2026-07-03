@@ -14,9 +14,9 @@ var updateCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		localPath := args[0]
-		dockerFileName := filepath.Base(localPath)
+		remoteFileName := filepath.Base(localPath)
 
-		err := client.UpdateFile(localPath, dockerFileName)
+		err := client.UpdateFile(localPath, remoteFileName)
 		if err != nil {
 			log.Fatalf("[update] command failed: %v", err)
 		}

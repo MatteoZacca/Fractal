@@ -15,7 +15,7 @@ const (
 	StreamChunkSize  = 64 * 1024        // 64KB
 )
 
-func UploadFile(localPath string, targetFileName string) error {
+func UploadFile(localPath string, remoteFileName string) error {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return fmt.Errorf("could not open file: %v", err)
@@ -28,7 +28,7 @@ func UploadFile(localPath string, targetFileName string) error {
 	}
 	fileSize := fileInfo.Size()
 
-	log.Printf("Starting upload for '%s' (size: %d bytes)", targetFileName, fileSize)
+	log.Printf("Starting upload for '%s' (size: %d bytes)", remoteFileName, fileSize)
 
 	// Connect to the NameNode
 	masterClient, conn, err := getNameNodeClient()
@@ -38,7 +38,7 @@ func UploadFile(localPath string, targetFileName string) error {
 	defer conn.Close()
 
 	res, err := masterClient.CreateFile(context.Background(), &pb.CreateFileRequest{
-		FilePath: targetFileName,
+		FilePath: remoteFileName,
 		FileSize: fileSize,
 	})
 	if err != nil {
@@ -68,14 +68,14 @@ func UploadFile(localPath string, targetFileName string) error {
 
 	// Commit the file to NameNode
 	_, err = masterClient.CommitFile(context.Background(), &pb.CommitFileRequest{
-		FilePath:       targetFileName,
+		FilePath:       remoteFileName,
 		ChunkIds:       chunkIDs,
 		ChunkLocations: res.ChunkLocations,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to commit to NameNode: %v", err)
 	}
-	log.Printf("SUCCESS: file %s is safely stored.", targetFileName)
+	log.Printf("SUCCESS: file %s is safely stored.", remoteFileName)
 
 	return nil
 }

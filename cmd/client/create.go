@@ -14,9 +14,9 @@ var createCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		localPath := args[0]
-		targetFileName := filepath.Base(localPath)
+		remoteFileName := filepath.Base(localPath)
 
-		err := client.UploadFile(localPath, targetFileName)
+		err := client.UploadFile(localPath, remoteFileName)
 		if err != nil {
 			log.Fatalf("[create] command failed: %v", err)
 		}
