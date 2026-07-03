@@ -18,7 +18,7 @@ var createCmd = &cobra.Command{
 
 		err := client.UploadFile(localPath, targetFileName)
 		if err != nil {
-			log.Fatalf("create command failed: %v", err)
+			log.Fatalf("[create] command failed: %v", err)
 		}
 	},
 }

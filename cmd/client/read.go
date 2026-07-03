@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/MatteoZacca/Fractal/internal/client"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +13,11 @@ var readCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]
-		client.DownloadFile(fileName)
+
+		err := client.DownloadFile(fileName)
+		if err != nil {
+			log.Fatalf("[read] command failed: %v", err)
+		}
 	},
 }
 

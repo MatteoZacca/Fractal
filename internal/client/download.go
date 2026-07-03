@@ -16,13 +16,13 @@ const (
 	DirPermissions = 0755 // Read/Write/Execute for owner, Read/Execute for others
 )
 
-func DownloadFile(fileName string) {
+func DownloadFile(fileName string) error {
 	log.Printf("Requesting download blueprint for '%s'...", fileName)
 
 	// Ask Master for the blueprint
 	masterClient, conn, err := getNameNodeClient()
 	if err != nil {
-		log.Fatalf("failed to connect to NameNode: %v", err)
+		return fmt.Errorf("failed to connect to NameNode: %v", err)
 	}
 	defer conn.Close()
 
@@ -30,20 +30,20 @@ func DownloadFile(fileName string) {
 		FilePath: fileName,
 	})
 	if err != nil {
-		log.Fatalf("error locating file: %v", err)
+		return fmt.Errorf("error locating file: %v", err)
 	}
 
 	// Create 'downloads' directory and output file
 	err = os.MkdirAll(DownloadsDir, DirPermissions)
 	if err != nil {
-		log.Fatalf("failed to create downloads directory: %v", err)
+		return fmt.Errorf("failed to create downloads directory: %v", err)
 	}
 
 	outputPath := filepath.Join(DownloadsDir, fileName)
 
 	outputFile, err := os.Create(outputPath)
 	if err != nil {
-		log.Fatalf("failed to create local output file: %v", err)
+		return fmt.Errorf("failed to create local output file: %v", err)
 	}
 	defer outputFile.Close()
 
@@ -67,7 +67,7 @@ func DownloadFile(fileName string) {
 		}
 
 		if targetChunkID == "" {
-			log.Fatalf("Blueprint is missing chunk index %d!", i)
+			return fmt.Errorf("Blueprint is missing chunk index %d!", i)
 		}
 
 		startOffset := currentChunkIndex * StorageChunkSize
@@ -78,13 +78,15 @@ func DownloadFile(fileName string) {
 		err := downloadChunkWithQuorum(outputPath, startOffset, targetChunkID, targetNodes, outputFile)
 
 		if err != nil {
-			log.Fatalf("Cluster failed to serve data: %v", err)
+			return fmt.Errorf("Cluster failed to serve data: %v", err)
 		}
 
 		currentChunkIndex++
 	}
 
 	log.Printf("Success! File fully reassembled and saved as '%s'", outputPath)
+
+	return nil
 }
 
 // Helper function to stream bytes directly from the network to the hard drive

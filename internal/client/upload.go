@@ -18,7 +18,7 @@ const (
 func UploadFile(localPath string, targetFileName string) error {
 	file, err := os.Open(localPath)
 	if err != nil {
-		fmt.Errorf("could not open file: %v", err)
+		return fmt.Errorf("could not open file: %v", err)
 	}
 	defer file.Close()
 
@@ -60,7 +60,7 @@ func UploadFile(localPath string, targetFileName string) error {
 		// QUORUM CONSENSUS LOGIC
 		err := uploadChunkWithQuorum(localPath, startOffset, chunkID, nodeList.WorkerIps)
 		if err != nil {
-			fmt.Errorf("FAILURE: something in uploadChunkWithQuorum went wrong...")
+			return fmt.Errorf("FAILURE: something in uploadChunkWithQuorum went wrong...")
 		}
 
 		currentChunkIndex++
