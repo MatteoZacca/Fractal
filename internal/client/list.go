@@ -3,29 +3,28 @@ package client
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"text/tabwriter"
 
 	"github.com/MatteoZacca/Fractal/pb"
 )
 
-func ListFiles() {
+func ListFiles() error {
 	// Connect to the NameNode
 	masterClient, conn, err := getNameNodeClient()
 	if err != nil {
-		log.Fatalf("Failed to connect to NameNode: %v", err)
+		return fmt.Errorf("Failed to connect to NameNode: %v", err)
 	}
 	defer conn.Close()
 
 	res, err := masterClient.ListFiles(context.Background(), &pb.ListFilesRequest{})
 	if err != nil {
-		log.Fatalf("Failed to retrieve file list from NameNode: %v", err)
+		return fmt.Errorf("Failed to retrieve file list from NameNode: %v", err)
 	}
 
 	if len(res.Files) == 0 {
 		fmt.Println("The Fractal cluster is currently empty.")
-		return
+		return nil
 	}
 
 	fmt.Println("\n🗄️  FRACTAL DISTRIBUTED FILE SYSTEM")
@@ -40,4 +39,6 @@ func ListFiles() {
 	}
 	w.Flush()
 	fmt.Println("-------------------------------------------------")
+
+	return nil
 }
