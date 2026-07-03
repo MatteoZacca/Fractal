@@ -20,7 +20,7 @@ type WorkerServer struct {
 }
 
 // Client -> Worker
-func (s *WorkerServer) ChechChunk(ctx context.Context, req *pb.CheckChunkRequest) (*pb.CheckChunkResponse, error) {
+func (s *WorkerServer) CheckChunk(ctx context.Context, req *pb.CheckChunkRequest) (*pb.CheckChunkResponse, error) {
 	// Asks the DiskManager for the metadata
 	size, exists, err := s.DiskManager.RequestChunkSize(req.ChunkId)
 	if err != nil {
