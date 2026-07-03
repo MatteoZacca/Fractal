@@ -2,17 +2,18 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/MatteoZacca/Fractal/pb"
 )
 
-func DeleteFile(fileName string) {
+func DeleteFile(fileName string) error {
 	log.Printf("Initiating deletion for '%s'...", fileName)
 
 	masterClient, conn, err := getNameNodeClient()
 	if err != nil {
-		log.Fatalf("failed to connect to NameNode: %v", err)
+		return fmt.Errorf("failed to connect to NameNode: %v", err)
 	}
 	defer conn.Close()
 
@@ -21,7 +22,7 @@ func DeleteFile(fileName string) {
 		FilePath: fileName,
 	})
 	if err != nil {
-		log.Fatalf("error locating file: %v", err)
+		return fmt.Errorf("error locating file: %v", err)
 	}
 
 	// Loop through the blueprint and delete replicas
@@ -40,10 +41,12 @@ func DeleteFile(fileName string) {
 		FilePath: fileName,
 	})
 	if err != nil {
-		log.Fatalf("failed to finalize deletion on Master: %v", err)
+		return fmt.Errorf("failed to finalize deletion on Master: %v", err)
 	}
 
 	log.Printf("Success! '%s' has been completely burnt from the system.", fileName)
+
+	return nil
 }
 
 // Helper function to send the kill command to specific DataNodes

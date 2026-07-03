@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/MatteoZacca/Fractal/internal/client"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +13,11 @@ var burnCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName := args[0]
-		client.DeleteFile(fileName)
+
+		err := client.DeleteFile(fileName)
+		if err != nil {
+			log.Fatalf("[burn] command failed: %v", err)
+		}
 	},
 }
 
