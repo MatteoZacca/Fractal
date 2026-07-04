@@ -22,7 +22,7 @@ type pingOutcome struct {
 func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID string, dataNodeIPs []string, outputFile *os.File) error {
 
 	// CONCURRENT PING
-	log.Printf("Pinging %d nodes for chunk metadata...", len(dataNodeIPs))
+	log.Printf("Pinging %v for %s metadata...", dataNodeIPs, chunkID)
 
 	outcomes := make(chan pingOutcome, len(dataNodeIPs))
 	var wg sync.WaitGroup
@@ -57,9 +57,9 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 			}
 		} else {
 			if res.err != nil {
-				log.Printf("ping to DataNode %s failed: %v", res.dataNodeIP, res.err)
+				log.Printf("ping to %s failed: %v", res.dataNodeIP, res.err)
 			} else {
-				log.Printf("DataNode %s is missing the chunk %s", res.dataNodeIP, chunkID)
+				log.Printf("%s is missing the chunk %s", res.dataNodeIP, chunkID)
 			}
 			brokenNodes = append(brokenNodes, res.dataNodeIP)
 		}

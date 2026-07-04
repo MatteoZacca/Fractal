@@ -49,7 +49,7 @@ func DownloadFile(fileName string) error {
 
 	// Download and stitch the chunks in correct order
 	totalChunks := len(res.ChunkLocations)
-	log.Printf("blueprint received! file is split into %d chunks. starting assembly...", totalChunks)
+	log.Printf("Blueprint received! file is split into %d chunks. starting assembly...", totalChunks)
 
 	var currentChunkIndex int64 = 0
 
