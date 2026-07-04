@@ -37,31 +37,32 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 	}
 
 	var healthyNodes []string
-	var brokenNodes []string
+	// var brokenNodes []string
+	var staleNodes []string
 	var expectedSize int64 = -1
 
 	for range dataNodeIPs {
 		res := <-outcomes
 
-		if res.err == nil && res.exists {
-			// record the size of the first healthy chunk found
-			if expectedSize == -1 {
-				expectedSize = res.sizeBytes
-			}
-
-			if res.sizeBytes == expectedSize {
-				healthyNodes = append(healthyNodes, res.dataNodeIP)
+		if res.err == nil {
+			if res.exists {
+				// record the size of the first healthy chunk found
+				if expectedSize == -1 {
+					expectedSize = res.sizeBytes
+				}
+				if res.sizeBytes == expectedSize {
+					healthyNodes = append(healthyNodes, res.dataNodeIP)
+				} else {
+					log.Printf("size mismatch on %s. expected %d, got %d", res.dataNodeIP, expectedSize, res.sizeBytes)
+					staleNodes = append(staleNodes, res.dataNodeIP) // Needs Read Repair
+				}
 			} else {
-				log.Printf("size mismatch on %s. expected %d, got %d", res.dataNodeIP, expectedSize, res.sizeBytes)
-				brokenNodes = append(brokenNodes, res.dataNodeIP)
+				log.Printf("%s is alive but missing chunk %s", res.dataNodeIP, chunkID)
+				staleNodes = append(staleNodes, res.dataNodeIP) // Needs Read Repair
 			}
 		} else {
-			if res.err != nil {
-				log.Printf("ping to %s failed: %v", res.dataNodeIP, res.err)
-			} else {
-				log.Printf("%s is missing the chunk %s", res.dataNodeIP, chunkID)
-			}
-			brokenNodes = append(brokenNodes, res.dataNodeIP)
+			// THE NODE IS DEAD. Do not try to repair a dead node.
+			log.Printf("NODE UNREACHABLE: ping to %s failed. Ignoring for Read Repair.", res.dataNodeIP)
 		}
 
 		if len(healthyNodes) >= ReadQuorum {
@@ -82,8 +83,8 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 		return fmt.Errorf("FAILURE: network failed during actual download from %s: %v", targetDataNode, err)
 	}
 
-	// READ REPAIR (WRITE BACK)
-	if len(brokenNodes) > 0 {
+	// READ REPAIR (only on alive datanodes that are missing data)
+	if len(staleNodes) > 0 {
 		go func(nodesToHeal []string, dockerPath string, offset int64, chunkID string) {
 			for _, brokenIP := range nodesToHeal {
 				err := uploadChunkToDataNode(dockerPath, offset, chunkID, brokenIP)
@@ -94,7 +95,7 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 				}
 
 			}
-		}(brokenNodes, dockerPath, startOffset, chunkID)
+		}(staleNodes, dockerPath, startOffset, chunkID)
 	}
 
 	return nil
