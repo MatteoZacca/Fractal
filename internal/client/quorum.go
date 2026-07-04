@@ -122,7 +122,7 @@ func uploadChunkWithQuorum(localPath string, startOffset int64, chunkID string, 
 		if err == nil {
 			successWrites++
 			if successWrites >= WriteQuorum {
-				log.Printf("Quorum reached for %s", chunkID)
+				log.Printf("Write Quorum reached for %s", chunkID)
 				return nil // DOESN'T CARE ABOUT THE 3RD NODE
 			}
 		} else {

@@ -40,10 +40,11 @@ func DownloadFile(fileName string) error {
 	}
 
 	outputPath := filepath.Join(DownloadsDir, fileName)
+	tmpOutputPath := outputPath + ".tmp"
 
-	outputFile, err := os.Create(outputPath)
+	outputFile, err := os.Create(tmpOutputPath)
 	if err != nil {
-		return fmt.Errorf("failed to create local output file: %v", err)
+		return fmt.Errorf("failed to create local temporary output file: %v", err)
 	}
 	defer outputFile.Close()
 
@@ -67,6 +68,8 @@ func DownloadFile(fileName string) error {
 		}
 
 		if targetChunkID == "" {
+			outputFile.Close()
+			os.Remove(tmpOutputPath)
 			return fmt.Errorf("Blueprint is missing chunk index %d!", i)
 		}
 
@@ -78,12 +81,20 @@ func DownloadFile(fileName string) error {
 		err := downloadChunkWithQuorum(outputPath, startOffset, targetChunkID, targetNodes, outputFile)
 
 		if err != nil {
+			outputFile.Close()
+			os.Remove(tmpOutputPath)
 			return fmt.Errorf("Cluster failed to serve data: %v", err)
 		}
 
 		currentChunkIndex++
 	}
 
+	outputFile.Close()
+
+	err = os.Rename(tmpOutputPath, outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to remove tmp extension in downloaded file: %v", err)
+	}
 	log.Printf("Success! File fully reassembled and saved as '%s'", outputPath)
 
 	return nil

@@ -106,45 +106,45 @@ func TestReadQuorum_FailsWhenTwoReplicasDie(t *testing.T) {
 // By destroying exactly 1 replica, 2 healthy replicas remain. Since the remaining nodes
 // satisfy the Read Quorum (R=2), the system must seamlessly mask the failure and
 // successfully reconstruct the file for the user.
-// func TestReadQuorum_SuccessWhenOneReplicaDies(t *testing.T) {
-// 	// ARRANGE
-// 	masterClient := setupClusterAndUpload(t)
+func TestReadQuorum_SuccessWhenOneReplicaDies(t *testing.T) {
+	// ARRANGE
+	masterClient := setupClusterAndUpload(t)
 
-// 	// ACT
-// 	res, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
-// 		FilePath: RemoteTestFilePath,
-// 	})
-// 	if err != nil {
-// 		t.Fatalf("failed to fetch blueprint: %v", err)
-// 	}
+	// ACT
+	res, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
+		FilePath: RemoteTestFilePath,
+	})
+	if err != nil {
+		t.Fatalf("failed to fetch blueprint: %v", err)
+	}
 
-// 	var dataNodesToKill []string
+	var dataNodesToKill []string
 
-// 	for _, dataNodeList := range res.ChunkLocations {
-// 		dataNodesToKill = dataNodeList.WorkerIps[:1]
-// 		break
-// 	}
+	for _, dataNodeList := range res.ChunkLocations {
+		dataNodesToKill = dataNodeList.WorkerIps[:1]
+		break
+	}
 
-// 	stopArgs := []string{"stop"}
-// 	for _, dataNodeIP := range dataNodesToKill {
-// 		dataNodeContainerName := strings.Split(dataNodeIP, ":")[0]
-// 		stopArgs = append(stopArgs, dataNodeContainerName)
-// 	}
+	stopArgs := []string{"stop"}
+	for _, dataNodeIP := range dataNodesToKill {
+		dataNodeContainerName := strings.Split(dataNodeIP, ":")[0]
+		stopArgs = append(stopArgs, dataNodeContainerName)
+	}
 
-// 	t.Logf("killing containers: %v", stopArgs[1:])
-// 	err = runDockerCompose(stopArgs...)
-// 	if err != nil {
-// 		t.Fatalf("failed to kill targeted containers: %v", err)
-// 	}
+	t.Logf("killing containers: %v", stopArgs[1:])
+	err = runDockerCompose(stopArgs...)
+	if err != nil {
+		t.Fatalf("failed to kill targeted containers: %v", err)
+	}
 
-// 	t.Log("Attempting to read the file...")
+	t.Log("Attempting to read the file...")
 
-// 	err = client.DownloadFile(RemoteTestFilePath)
+	err = client.DownloadFile(RemoteTestFilePath)
 
-// 	// ASSERT
-// 	if err == nil {
-// 		t.Logf("SUCCESS: system correctly downloaded %s", RemoteTestFilePath)
-// 	} else {
-// 		t.Fatalf("FATAL: system rejected download even though only one replica was destroyed! Quorum logic failed.")
-// 	}
-// }
+	// ASSERT
+	if err == nil {
+		t.Logf("SUCCESS: system correctly downloaded %s", RemoteTestFilePath)
+	} else {
+		t.Fatalf("FATAL: system rejected download even though only one replica was destroyed! Quorum logic failed.")
+	}
+}
