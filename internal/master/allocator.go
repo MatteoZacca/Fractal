@@ -11,14 +11,14 @@ import (
 const ChunkSize = 64 * 1024 * 1024 // 64 MB
 
 // looks for healhy workers, and picks R of them?
-func (m *MetadataStore) AllocateDataNodes(replicationFactor int) ([]string, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+func (c *ClusterState) AllocateDataNodes(replicationFactor int) ([]string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	var healthyNodes []DataNode
 
 	// HEALTH CHECK
-	for _, dataNodeInfo := range m.DataNodes {
+	for _, dataNodeInfo := range c.DataNodes {
 		// If a worker hasn't sent a heartbeat in the last 15 seconds, we consider it DEAD.
 		// We will NOT assign new files to it.
 		if time.Since(dataNodeInfo.LastHeartbeat) < 15*time.Second {

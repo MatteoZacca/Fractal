@@ -20,39 +20,40 @@ func init() {
 	fsImagePath = os.Getenv("FSIMAGE_PATH")
 
 	if nameNodePort == "" {
-		log.Fatal("NAMENODE_PORT environment variable is not set")
+		log.Fatal("FATAL: NAMENODE_PORT environment variable is not set")
 	}
 
 	if fsImagePath == "" {
-		log.Fatal("FSIMAGE_PATH environment variable is not set")
+		log.Fatal("FATAL: FSIMAGE_PATH environment variable is not set")
 	}
 }
 
 func main() {
-	leader := master.NewMetadataStore()
+	clusterState := master.NewClusterState()
 
-	log.Printf("Booting NameNode... Attempting to load state from %s", fsImagePath)
-	err := leader.LoadFromDisk(fsImagePath)
+	log.Printf("INFO: booting NameNode... Attempting to load state from %s", fsImagePath)
+	err := clusterState.LoadFromDisk(fsImagePath)
 	if err != nil {
-		log.Fatalf("Critical Failure: Could not load metadata: %v", err)
+		log.Fatalf("FATAL: failed to initialize NameNode state from FSImage: %v", err)
 	}
-	log.Println("Metadata loaded successfully. System state restored.")
+	log.Println("SUCCESS: FSImage loaded. Cluster state fully restored.")
 
 	listener, err := net.Listen("tcp", ":"+nameNodePort)
 	if err != nil {
-		log.Fatalf("failed to listen on %s: %v", nameNodePort, err)
+		log.Fatalf("FATAL: failed to bind TCP listener on port %s: %v", nameNodePort, err)
 	}
 
 	grpcServer := grpc.NewServer()
 
-	nameNodeLogic := &master.NameNode{
-		Metadata:    leader,
+	nameNodeServer := &master.NameNode{
+		State:       clusterState,
 		FSImagePath: fsImagePath,
 	}
-	pb.RegisterMasterServiceServer(grpcServer, nameNodeLogic)
+	pb.RegisterMasterServiceServer(grpcServer, nameNodeServer)
 
-	log.Printf("NameNode is ALIVE and listening on port %s", nameNodePort)
+	log.Printf("INFO: NameNode is ALIVE and listening on port %s", nameNodePort)
+
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("failed to serve gRPC: %v", err)
+		log.Fatalf("FATAL: gRPC server crashed: %v", err)
 	}
 }
