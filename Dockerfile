@@ -15,12 +15,12 @@ RUN go mod download
 # Copy all Go code into the container
 COPY . .
 
-# Compile the Master (NameNode)
+# Compile the NameNode
 # CGO_ENABLED=0 ensures the binary is 100% statically linked (no missing C libraries)
 # GOOS=linux forces it to compile for Linux
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/namenode ./cmd/master/main.go
 
-# Compile the Worker (DataNode)
+# Compile the DataNode
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/datanode ./cmd/worker/main.go
 
 # ==========================================

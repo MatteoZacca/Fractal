@@ -15,11 +15,11 @@ import (
 // Master
 type NameNode struct {
 	pb.UnimplementedMasterServiceServer
-	Metadata *MetadataStore
+	Metadata    *MetadataStore
+	FSImagePath string
 }
 
 const (
-	MetadataFile      = "/app/data/namespace.json"
 	ReplicationFactor = 3
 )
 
@@ -36,7 +36,7 @@ func (n *NameNode) SendHeartbeat(ctx context.Context, req *pb.HeartbeatMsg) (*pb
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(MetadataFile)
+	err := n.Metadata.SaveToDisk(n.FSImagePath)
 	if err != nil {
 		log.Printf("failed to save heartbeat to disk: %v", err)
 	}
@@ -102,7 +102,7 @@ func (n *NameNode) CommitFile(ctx context.Context, req *pb.CommitFileRequest) (*
 	}
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(MetadataFile)
+	err := n.Metadata.SaveToDisk(n.FSImagePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata to disk: %v", err)
 	}
@@ -149,7 +149,7 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(MetadataFile)
+	err := n.Metadata.SaveToDisk(n.FSImagePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}
@@ -179,7 +179,7 @@ func (n *NameNode) SwapFileName(ctx context.Context, req *pb.SwapFileNameRequest
 
 	n.Metadata.mu.Unlock()
 
-	err := n.Metadata.SaveToDisk(MetadataFile)
+	err := n.Metadata.SaveToDisk(n.FSImagePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save metadata: %v", err)
 	}

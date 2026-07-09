@@ -10,38 +10,49 @@ import (
 	"google.golang.org/grpc"
 )
 
-func main() {
-	port := os.Getenv("MASTER_PORT")
-	if port == "" {
-		port = "9000"
+var (
+	nameNodePort string
+	fsImagePath  string
+)
+
+func init() {
+	nameNodePort = os.Getenv("NAMENODE_PORT")
+	fsImagePath = os.Getenv("FSIMAGE_PATH")
+
+	if nameNodePort == "" {
+		log.Fatal("NAMENODE_PORT environment variable is not set")
 	}
-	masterPort := ":" + port
 
-	metadataFile := "/app/data/namespace.json"
+	if fsImagePath == "" {
+		log.Fatal("FSIMAGE_PATH environment variable is not set")
+	}
+}
 
+func main() {
 	leader := master.NewMetadataStore()
 
-	log.Printf("Booting NameNode... Attempting to load state from %s", metadataFile)
-	err := leader.LoadFromDisk(metadataFile)
+	log.Printf("Booting NameNode... Attempting to load state from %s", fsImagePath)
+	err := leader.LoadFromDisk(fsImagePath)
 	if err != nil {
 		log.Fatalf("Critical Failure: Could not load metadata: %v", err)
 	}
 	log.Println("Metadata loaded successfully. System state restored.")
 
-	listener, err := net.Listen("tcp", masterPort)
+	listener, err := net.Listen("tcp", ":"+nameNodePort)
 	if err != nil {
-		log.Fatalf("Failed to listen on %s: %v", masterPort, err)
+		log.Fatalf("failed to listen on %s: %v", nameNodePort, err)
 	}
 
 	grpcServer := grpc.NewServer()
 
 	nameNodeLogic := &master.NameNode{
-		Metadata: leader,
+		Metadata:    leader,
+		FSImagePath: fsImagePath,
 	}
 	pb.RegisterMasterServiceServer(grpcServer, nameNodeLogic)
 
-	log.Printf("NameNode is ALIVE and listening on port %s", masterPort)
+	log.Printf("NameNode is ALIVE and listening on port %s", nameNodePort)
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("Failed to serve gRPC: %v", err)
+		log.Fatalf("failed to serve gRPC: %v", err)
 	}
 }

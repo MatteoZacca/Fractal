@@ -56,24 +56,24 @@ func (m *MetadataStore) SaveToDisk(filePath string) error {
 	return nil
 }
 
-func (m *MetadataStore) LoadFromDisk(filePath string) error {
+func (m *MetadataStore) LoadFromDisk(fsImagePath string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		log.Printf("namespace.json not found. Creating a fresh skeleton...")
+	if _, err := os.Stat(fsImagePath); os.IsNotExist(err) {
+		log.Printf("file_system_image.json not found. Creating a fresh skeleton...")
 
 		emptyNameSpace, err := json.MarshalIndent(m, "", "")
 		if err != nil {
-			return fmt.Errorf("failedmarshal initial namespace: %v", err)
+			return fmt.Errorf("failed marshal initial namespace: %v", err)
 		}
 
-		if writeErr := os.WriteFile(filePath, emptyNameSpace, 0644); writeErr != nil {
+		if writeErr := os.WriteFile(fsImagePath, emptyNameSpace, 0644); writeErr != nil {
 			return fmt.Errorf("cannot write to disk: %v", writeErr)
 		}
 	}
 
-	data, err := os.ReadFile(filePath)
+	data, err := os.ReadFile(fsImagePath)
 	if err != nil {
 		return fmt.Errorf("failed to read metadata file: %v", err)
 	}

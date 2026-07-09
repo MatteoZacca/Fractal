@@ -1,7 +1,7 @@
 name: fractal
 
 services:
-  # THE MASTER NODE
+  # MASTER NODE
   namenode:
     build: 
       context: .
@@ -11,7 +11,8 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - MASTER_PORT=9000
+      - NAMENODE_PORT=9000
+      - FSIMAGE_PATH=/app/data/file_system_image.json
     volumes:
       - namenode_data:/app/data
     networks:
