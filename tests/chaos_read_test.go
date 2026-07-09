@@ -2,10 +2,8 @@ package tests
 
 import (
 	"context"
-	"os/exec"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/MatteoZacca/Fractal/internal/client"
 	"github.com/MatteoZacca/Fractal/pb"
@@ -13,35 +11,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const (
-	HeartbeatInizializationDelay = 10 * time.Second
-	LocalTestFilePath            = "../mock_files/150mb.mp4"
-	RemoteTestFilePath           = "150mb.mp4"
-)
-
-func runDockerCompose(args ...string) error {
-	cmd := exec.Command("docker-compose", args...)
-	cmd.Dir = "../"
-
-	return cmd.Run()
-}
-
-func setupClusterAndUpload(t *testing.T) pb.MasterServiceClient {
-	t.Log("Booting cluster...")
-
-	err := runDockerCompose("up", "--build", "-d")
-	if err != nil {
-		t.Fatalf("failed to boot cluster: %v", err)
-	}
-
-	t.Cleanup(func() {
-		t.Log("Tearing down cluster...")
-		runDockerCompose("down", "-v")
-	})
-
-	time.Sleep(HeartbeatInizializationDelay)
-
-	err = client.UploadFile(LocalTestFilePath, RemoteTestFilePath)
+func uploadSimulation(t *testing.T) pb.MasterServiceClient {
+	err := client.UploadFile(LocalTestFilePath, RemoteTestFilePath)
 	if err != nil {
 		t.Fatalf("failed to upload %s in the cluster: %v", LocalTestFilePath, err)
 	}
@@ -61,7 +32,8 @@ func setupClusterAndUpload(t *testing.T) pb.MasterServiceClient {
 // the download to protect the user from stale or corrupted data.
 func TestReadQuorum_FailsWhenTwoReplicasDie(t *testing.T) {
 	// ARRANGE
-	masterClient := setupClusterAndUpload(t)
+	setupCluster(t)
+	masterClient := uploadSimulation(t)
 
 	// ACT
 	res, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
@@ -108,7 +80,8 @@ func TestReadQuorum_FailsWhenTwoReplicasDie(t *testing.T) {
 // successfully reconstruct the file for the user.
 func TestReadQuorum_SuccessWhenOneReplicaDies(t *testing.T) {
 	// ARRANGE
-	masterClient := setupClusterAndUpload(t)
+	setupCluster(t)
+	masterClient := uploadSimulation(t)
 
 	// ACT
 	res, err := masterClient.GetFileLocations(context.Background(), &pb.GetFileRequest{
