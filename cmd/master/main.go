@@ -38,6 +38,7 @@ func main() {
 	}
 	log.Println("SUCCESS: FSImage loaded. Cluster state fully restored.")
 
+	/* -------------------NAMENODE AS A SERVER----------------------- */
 	listener, err := net.Listen("tcp", ":"+nameNodePort)
 	if err != nil {
 		log.Fatalf("FATAL: failed to bind TCP listener on port %s: %v", nameNodePort, err)
@@ -50,6 +51,7 @@ func main() {
 		FSImagePath: fsImagePath,
 	}
 	pb.RegisterMasterServiceServer(grpcServer, nameNodeServer)
+	/* -------------------------------------------------------------- */
 
 	log.Printf("INFO: NameNode is ALIVE and listening on port %s", nameNodePort)
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/MatteoZacca/Fractal/pb"
@@ -12,18 +13,18 @@ import (
 
 const bufferSize = 64 * 1024 // 64KB
 
-// WorkerServer handles network requests and delegates storage to DiskManager
-type WorkerServer struct {
+// DataNodeServer handles network requests and delegates physical I/O to the ChunkStore
+type DataNodeServer struct {
 	pb.UnimplementedWorkerServiceServer
-	NodeId      string
-	DiskManager *DiskManager
+	DataNodeID string
+	ChunkStore *ChunkStore
 }
 
 // Client -> Worker
-func (s *WorkerServer) CheckChunk(ctx context.Context, req *pb.CheckChunkRequest) (*pb.CheckChunkResponse, error) {
-	// Asks the DiskManager for the metadata
-	size, exists, err := s.DiskManager.RequestChunkSize(req.ChunkId)
+func (d *DataNodeServer) CheckChunk(ctx context.Context, req *pb.CheckChunkRequest) (*pb.CheckChunkResponse, error) {
+	size, exists, err := d.ChunkStore.RequestChunkSize(req.ChunkId)
 	if err != nil {
+		log.Printf("[ERROR] Failed to check chunk %s: %v", req.ChunkId, err)
 		return nil, err
 	}
 
@@ -34,21 +35,24 @@ func (s *WorkerServer) CheckChunk(ctx context.Context, req *pb.CheckChunkRequest
 }
 
 // Client -> Worker
-func (s *WorkerServer) DeleteChunk(ctx context.Context, req *pb.DeleteChunkRequest) (*pb.StandardResponse, error) {
-	// Ask DiskManager to destroy the file
-	err := s.DiskManager.DeleteChunk(req.ChunkId)
+func (d *DataNodeServer) DeleteChunk(ctx context.Context, req *pb.DeleteChunkRequest) (*pb.StandardResponse, error) {
+	err := d.ChunkStore.DeleteChunk(req.ChunkId)
 	if err != nil {
+		log.Printf("[ERROR] Failed to delete chunk %s: %v", req.ChunkId, err)
 		return nil, err
 	}
 
+	log.Printf("[INFO] Successfully deleted chunk %s from disk", req.ChunkId)
 	return &pb.StandardResponse{Success: true}, nil
 }
 
 // Client <- Worker
-func (s *WorkerServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.ServerStreamingServer[pb.ChunkData]) error {
-	// Ask DiskManager to fetch the file pointer
-	file, err := s.DiskManager.OpenChunk(req.ChunkId)
+func (d *DataNodeServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.ServerStreamingServer[pb.ChunkData]) error {
+	log.Printf("[INFO] Client requested download for chunk: %s", req.ChunkId)
+
+	file, err := d.ChunkStore.OpenChunk(req.ChunkId)
 	if err != nil {
+		log.Printf("[ERROR] Could not open chunk %s for retrieval: %v", req.ChunkId, err)
 		return err
 	}
 	defer file.Close()
@@ -61,24 +65,28 @@ func (s *WorkerServer) RetrieveChunk(req *pb.RetrieveChunkRequest, stream grpc.S
 			break // Done reading
 		}
 		if err != nil {
+			log.Printf("[ERROR] Disk read error during streaming of %s: %v", req.ChunkId, err)
 			return fmt.Errorf("failed to read chunk from disk: %v", err)
 		}
 
-		// Send the piece over the network
 		sendErr := stream.Send(&pb.ChunkData{
 			ChunkId: req.ChunkId,
 			Data:    buffer[:bytesRead],
 		})
 		if sendErr != nil {
+			log.Printf("[ERROR] Network failure while streaming %s to client: %v", req.ChunkId, sendErr)
 			return fmt.Errorf("failed to send chunk data: %v", sendErr)
 		}
 	}
+
+	log.Printf("[SUCCESS] Finished streaming chunk %s to client", req.ChunkId)
 	return nil
 }
 
 // Client -> Worker
-func (s *WorkerServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData, pb.StandardResponse]) error {
+func (d *DataNodeServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData, pb.StandardResponse]) error {
 	var file *os.File
+	var currentChunkID string
 
 	for {
 		msg, err := stream.Recv()
@@ -86,19 +94,27 @@ func (s *WorkerServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData
 		if err == io.EOF {
 			if file != nil {
 				file.Close()
+				log.Printf("[SUCCESS] Finished receiving and storing chunk: %s", currentChunkID)
 			}
 
 			return stream.SendAndClose(&pb.StandardResponse{Success: true})
 		}
 
 		if err != nil {
+			if file != nil {
+				file.Close()
+			}
+			log.Printf("[ERROR] Network stream interrupted: %v", err)
 			return fmt.Errorf("failed to receive chunk stream: %v", err)
 		}
 
-		// Ask DiskManager to create the file the first time the system receives bytes
 		if file == nil {
-			file, err = s.DiskManager.CreateChunk(msg.ChunkId)
+			currentChunkID = msg.ChunkId
+			log.Printf("[INFO] Starting to receive stream for new chunk: %s", currentChunkID)
+
+			file, err = d.ChunkStore.CreateChunk(currentChunkID)
 			if err != nil {
+				log.Printf("[ERROR] Failed to allocate disk space for chunk %s: %v", currentChunkID, err)
 				return err
 			}
 		}
@@ -106,6 +122,7 @@ func (s *WorkerServer) StoreChunk(stream grpc.ClientStreamingServer[pb.ChunkData
 		// Write the network bytes straight to the physical disk
 		_, err = file.Write(msg.Data)
 		if err != nil {
+			log.Printf("[ERROR] Disk write failure while saving %s: %v", currentChunkID, err)
 			return fmt.Errorf("failed to write to disk: %v", err)
 		}
 	}

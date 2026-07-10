@@ -12,23 +12,23 @@ const (
 	ZeroBytes      = 0
 )
 
-// DiskManager handles all physical hard drive operations
-type DiskManager struct {
+// ChunkStore manages the physical storage of chunk files on the local hard drive
+type ChunkStore struct {
 	DataDir string
 }
 
-func NewDiskManager(dataDir string) *DiskManager {
+func NewChunkStore(dataDir string) *ChunkStore {
 	// Automatically create the directory if it doesn't exist yet
 	os.MkdirAll(dataDir, DirPermissions)
 
-	return &DiskManager{
+	return &ChunkStore{
 		DataDir: dataDir,
 	}
 }
 
 // CreateChunk creates a new file and returns the open file pointer for writing
-func (d *DiskManager) CreateChunk(chunkID string) (*os.File, error) {
-	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
+func (c *ChunkStore) CreateChunk(chunkID string) (*os.File, error) {
+	chunkPath := filepath.Join(c.DataDir, chunkID+".dat")
 
 	file, err := os.Create(chunkPath)
 	if err != nil {
@@ -38,8 +38,8 @@ func (d *DiskManager) CreateChunk(chunkID string) (*os.File, error) {
 }
 
 // DeleteChunk permanently removes the file from the hard drive
-func (d *DiskManager) DeleteChunk(chunkID string) error {
-	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
+func (c *ChunkStore) DeleteChunk(chunkID string) error {
+	chunkPath := filepath.Join(c.DataDir, chunkID+".dat")
 
 	err := os.Remove(chunkPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -49,8 +49,8 @@ func (d *DiskManager) DeleteChunk(chunkID string) error {
 }
 
 // OpenChunk opens an existing file and returns the file pointer for reading
-func (d *DiskManager) OpenChunk(chunkID string) (*os.File, error) {
-	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
+func (c *ChunkStore) OpenChunk(chunkID string) (*os.File, error) {
+	chunkPath := filepath.Join(c.DataDir, chunkID+".dat")
 
 	file, err := os.Open(chunkPath)
 	if err != nil {
@@ -60,8 +60,8 @@ func (d *DiskManager) OpenChunk(chunkID string) (*os.File, error) {
 }
 
 // StatChunk checks if a chunk exists and returns its size in bytes without opening it
-func (d *DiskManager) RequestChunkSize(chunkID string) (int64, bool, error) {
-	chunkPath := filepath.Join(d.DataDir, chunkID+".dat")
+func (c *ChunkStore) RequestChunkSize(chunkID string) (int64, bool, error) {
+	chunkPath := filepath.Join(c.DataDir, chunkID+".dat")
 
 	info, err := os.Stat(chunkPath)
 	if err != nil {

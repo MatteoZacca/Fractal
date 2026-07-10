@@ -30,7 +30,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - NODE_ID=datanode-1
+      - DATANODE_ID=datanode-1
       - DATANODE_PORT=8001
       - DATA_DIR=/app/data/datanode-1
       - NAMENODE_ADDRESS=namenode:9000
@@ -49,7 +49,7 @@ services:
     ports:
       - "8002:8002"
     environment:
-      - NODE_ID=datanode-2
+      - DATANODE_ID=datanode-2
       - DATANODE_PORT=8002
       - DATA_DIR=/app/data/datanode-2
       - NAMENODE_ADDRESS=namenode:9000
@@ -71,7 +71,7 @@ services:
     ports:
       - "8003:8003"
     environment:
-      - NODE_ID=datanode-3
+      - DATANODE_ID=datanode-3
       - DATANODE_PORT=8003
       - DATA_DIR=/app/data/datanode-3
       - NAMENODE_ADDRESS=namenode:9000
@@ -90,7 +90,7 @@ services:
     ports:
       - "8004:8004"
     environment:
-      - NODE_ID=datanode-4
+      - DATANODE_ID=datanode-4
       - DATANODE_PORT=8004
       - DATA_DIR=/app/data/datanode-4
       - NAMENODE_ADDRESS=namenode:9000
