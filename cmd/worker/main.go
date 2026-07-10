@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 	"os"
-	"time"
 
 	"github.com/MatteoZacca/Fractal/internal/worker"
 	"github.com/MatteoZacca/Fractal/pb"
@@ -22,13 +20,10 @@ var (
 	rackID          string
 )
 
-const (
-	DirPermissions    = 0755 // Read/Write/Execute for owner, Read/Execute for others
-	HeartbeatInterval = 3 * time.Second
-)
+const DirPermissions = 0755 // Read/Write/Execute for owner, Read/Execute for others
 
 func init() {
-	dataNodeID = os.Getenv("NODE_ID")
+	dataNodeID = os.Getenv("DATANODE_ID")
 	dataNodePort = os.Getenv("DATANODE_PORT")
 	dataDir = os.Getenv("DATA_DIR")
 	nameNodeAddress = os.Getenv("NAMENODE_ADDRESS")
@@ -67,35 +62,11 @@ func main() {
 
 	dataNodeAddress := dataNodeID + ":" + dataNodePort
 	// Start the background heartbeat thread
-	go startHeartbeat(nameNodeClient, dataNodeID, dataNodeAddress, nameNodeAddress, rackID)
+	go worker.StartHeartbeat(nameNodeClient, dataNodeID, dataNodeAddress, nameNodeAddress, rackID)
 
 	log.Printf("[INFO] [%s] is ALIVE on port %s. Local storage mapped to: %s", dataNodeID, dataNodePort, dataDir)
 
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("[FATAL] gRPC server crashed: %v", err)
-	}
-}
-
-func startHeartbeat(client pb.MasterServiceClient, dataNodeID string, dataNodeAddress string, nameNodeAddress string, rackID string) {
-	ticker := time.NewTicker(HeartbeatInterval)
-
-	for {
-		<-ticker.C // pauses the loop until 3 seconds have passed
-
-		// Call the NameNode's 'SendHeartbeat' RPC Verb
-		_, err := client.SendHeartbeat(context.Background(), &pb.HeartbeatMsg{
-			NodeId:         dataNodeID,
-			Address:        dataNodeAddress,
-			DiskUsage:      0,          // TODO -> Load Balancing
-			DiskCapacity:   0,          // TODO -> Load Balancing
-			StoredChunkIds: []string{}, // TODO -> Garbage Collection
-			RackId:         rackID,
-		})
-
-		if err != nil {
-			log.Printf("[ERROR] Heartbeat failed: could not reach NameNode at [%s]: %v", nameNodeAddress, err)
-		} else {
-			log.Printf("[INFO] Heartbeat successfully acknowledged by NameNode.")
-		}
 	}
 }
