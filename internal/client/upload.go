@@ -60,7 +60,7 @@ func UploadFile(localPath string, remoteFileName string) error {
 		// QUORUM CONSENSUS LOGIC
 		err := uploadChunkWithQuorum(localPath, startOffset, chunkID, nodeList.WorkerIps)
 		if err != nil {
-			return fmt.Errorf("FAILURE: something in uploadChunkWithQuorum went wrong...")
+			return fmt.Errorf("upload aborted:%v", err)
 		}
 
 		currentChunkIndex++
