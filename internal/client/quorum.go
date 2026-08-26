@@ -37,38 +37,40 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 	}
 
 	var healthyNodes []string
-	// var brokenNodes []string
 	var staleNodes []string
-	var expectedSize int64 = -1
+
+	sizeCounts := make(map[int64][]string)
 
 	for range dataNodeIPs {
 		res := <-outcomes
 
-		if res.err == nil {
-			if res.exists {
-				// record the size of the first healthy chunk found
-				if expectedSize == -1 {
-					expectedSize = res.sizeBytes
-				}
-				if res.sizeBytes == expectedSize {
-					healthyNodes = append(healthyNodes, res.dataNodeIP)
-				} else {
-					log.Printf("size mismatch on %s. expected %d, got %d", res.dataNodeIP, expectedSize, res.sizeBytes)
-					staleNodes = append(staleNodes, res.dataNodeIP) // Needs Read Repair
-				}
-			} else {
-				log.Printf("%s is alive but missing chunk %s", res.dataNodeIP, chunkID)
-				staleNodes = append(staleNodes, res.dataNodeIP) // Needs Read Repair
-			}
-		} else {
+		if res.err != nil {
 			// THE NODE IS DEAD. Do not try to repair a dead node.
 			log.Printf("NODE UNREACHABLE: ping to %s failed. Ignoring for Read Repair.", res.dataNodeIP)
+			continue
 		}
 
-		if len(healthyNodes) >= ReadQuorum {
+		if !res.exists {
+			log.Printf("%s is alive but missing chunk %s", res.dataNodeIP, chunkID)
+			staleNodes = append(staleNodes, res.dataNodeIP) // Needs Read Repair
+			continue
+		}
+
+		sizeCounts[res.sizeBytes] = append(sizeCounts[res.sizeBytes], res.dataNodeIP)
+
+		if len(sizeCounts[res.sizeBytes]) >= ReadQuorum {
+			healthyNodes = sizeCounts[res.sizeBytes]
 			log.Printf("Read Quorum reached for %s!", chunkID)
+
+			for size, nodes := range sizeCounts {
+				if size != res.sizeBytes {
+					log.Printf("Size mismatch detected in %s! Expected %d, but %v reported %d", chunkID, res.sizeBytes, nodes, size)
+					staleNodes = append(staleNodes, nodes...)
+				}
+			}
 			break // STOP WAITING FOR 3RD PING
 		}
+
 	}
 
 	if len(healthyNodes) < ReadQuorum {
