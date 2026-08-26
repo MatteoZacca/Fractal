@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/MatteoZacca/Fractal/pb"
 )
@@ -53,6 +54,7 @@ func DownloadFile(fileName string) error {
 	log.Printf("Blueprint received! file is split into %d chunks. starting assembly...", totalChunks)
 
 	var currentChunkIndex int64 = 0
+	var readRepairWg sync.WaitGroup
 
 	for i := range totalChunks {
 		var targetChunkID string
@@ -78,7 +80,7 @@ func DownloadFile(fileName string) error {
 		log.Printf("Pulling %s (enforcing R=2 Quorum)...", targetChunkID)
 
 		// Pass tmpOutputPath so Read Repair can read the bytes back from the hard drive if needed
-		err := downloadChunkWithQuorum(tmpOutputPath, startOffset, targetChunkID, targetNodes, outputFile)
+		err := downloadChunkWithQuorum(tmpOutputPath, startOffset, targetChunkID, targetNodes, outputFile, &readRepairWg)
 
 		if err != nil {
 			outputFile.Close()
@@ -90,6 +92,8 @@ func DownloadFile(fileName string) error {
 	}
 
 	outputFile.Close()
+
+	readRepairWg.Wait() // Wait for any background Read Repair to finish
 
 	err = os.Rename(tmpOutputPath, outputPath)
 	if err != nil {

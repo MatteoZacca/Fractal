@@ -53,7 +53,7 @@ func TestReadRepair_RestoresMissingChunk(t *testing.T) {
 	}
 
 	// ACT
-	t.Logf("%s sabotaged. Triggering download to force Read Repair...")
+	t.Logf("%s on %s sabotaged. Triggering download to force Read Repair...", targetChunkID, sabotagedDataNodeIP)
 	err = client.DownloadFile(RemoteTestFilePath)
 	if err != nil {
 		t.Fatalf("download failed: %v", err)
