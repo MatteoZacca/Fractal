@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/MatteoZacca/Fractal/internal/client"
 	"github.com/MatteoZacca/Fractal/pb"
@@ -58,9 +57,6 @@ func TestReadRepair_RestoresMissingChunk(t *testing.T) {
 	if err != nil {
 		t.Fatalf("download failed: %v", err)
 	}
-
-	// Wait briefly to allow the background goroutine to finish uploading the repaired chunk
-	time.Sleep(3 * time.Second)
 
 	// ASSERT
 	checkRes, err := workerClient.CheckChunk(context.Background(), &pb.CheckChunkRequest{
