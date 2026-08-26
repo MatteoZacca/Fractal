@@ -14,11 +14,16 @@ const FilePermissions = 0644 // Read/Write for owner; Read for others
 
 // ClusterState represents the entire active state of the file system and DataNodes
 type ClusterState struct {
-	mu sync.RWMutex
+	dataNodeMu  sync.RWMutex
+	namespaceMu sync.RWMutex
+
 	// Map 1: NodeID -> DataNode Info
+	// `json:"-"` ensures this data is never written to disk
 	DataNodes map[string]*DataNode `json:"data_nodes"`
+
 	// Map 2: File Name -> List of Chunk IDs
 	Files map[string][]string `json:"files"`
+
 	// Map 3: Chunk ID -> List of Node IDs holding it
 	ChunkLocations map[string][]string `json:"chunk_locations"`
 }
@@ -39,8 +44,8 @@ func NewClusterState() *ClusterState {
 }
 
 func (c *ClusterState) LoadFromDisk(fsImagePath string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.namespaceMu.Lock()
+	defer c.namespaceMu.Unlock()
 
 	if _, err := os.Stat(fsImagePath); os.IsNotExist(err) {
 		log.Printf("INFO: FSImage not found at %s. Creating a fresh, empty cluster state...", fsImagePath)
@@ -50,7 +55,7 @@ func (c *ClusterState) LoadFromDisk(fsImagePath string) error {
 			return fmt.Errorf("FATAL: failed to marshal initial cluster state: %v", err)
 		}
 
-		if writeErr := os.WriteFile(fsImagePath, emptyNameSpace, 0644); writeErr != nil {
+		if writeErr := os.WriteFile(fsImagePath, emptyNameSpace, FilePermissions); writeErr != nil {
 			return fmt.Errorf("FATAL: cannot write to disk: %v", writeErr)
 		}
 	}
@@ -69,8 +74,8 @@ func (c *ClusterState) LoadFromDisk(fsImagePath string) error {
 }
 
 func (c *ClusterState) SaveToDisk(filePath string) error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.namespaceMu.RLock()
+	defer c.namespaceMu.RUnlock()
 
 	// Convert our Maps into raw JSON bytes
 	data, err := json.MarshalIndent(c, "", " ")

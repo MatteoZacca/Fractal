@@ -10,10 +10,9 @@ import (
 
 const ChunkSize = 64 * 1024 * 1024 // 64 MB
 
-// looks for healhy workers, and picks R of them?
 func (c *ClusterState) AllocateDataNodes(replicationFactor int) ([]string, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.dataNodeMu.RLock()
+	defer c.dataNodeMu.RUnlock()
 
 	var healthyNodes []DataNode
 
