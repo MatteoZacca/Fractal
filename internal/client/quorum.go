@@ -19,7 +19,7 @@ type pingOutcome struct {
 	err        error
 }
 
-func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID string, dataNodeIPs []string, outputFile *os.File) error {
+func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID string, dataNodeIPs []string, outputFile *os.File, readRepairWg *sync.WaitGroup) error {
 
 	// CONCURRENT PING
 	log.Printf("Pinging %v for %s metadata...", dataNodeIPs, chunkID)
@@ -85,13 +85,17 @@ func downloadChunkWithQuorum(dockerPath string, startOffset int64, chunkID strin
 
 	// READ REPAIR (only on alive datanodes that are missing data)
 	if len(staleNodes) > 0 {
+		readRepairWg.Add(1)
+
 		go func(nodesToHeal []string, dockerPath string, offset int64, chunkID string) {
+			defer readRepairWg.Done()
+
 			for _, brokenIP := range nodesToHeal {
 				err := uploadChunkToDataNode(dockerPath, offset, chunkID, brokenIP)
 				if err != nil {
-					log.Printf("Background heal failed for %s: %v", brokenIP, err)
+					log.Printf("Background heal of %s failed for %s: %v", chunkID, brokenIP, err)
 				} else {
-					log.Printf("Background heal successful for %s!", brokenIP)
+					log.Printf("Background heal of %s successful for %s!", chunkID, brokenIP)
 				}
 
 			}
