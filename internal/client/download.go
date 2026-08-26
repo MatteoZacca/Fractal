@@ -77,8 +77,8 @@ func DownloadFile(fileName string) error {
 
 		log.Printf("Pulling %s (enforcing R=2 Quorum)...", targetChunkID)
 
-		// Pass outputPath so Read Repair can read the bytes back from the hard drive if needed
-		err := downloadChunkWithQuorum(outputPath, startOffset, targetChunkID, targetNodes, outputFile)
+		// Pass tmpOutputPath so Read Repair can read the bytes back from the hard drive if needed
+		err := downloadChunkWithQuorum(tmpOutputPath, startOffset, targetChunkID, targetNodes, outputFile)
 
 		if err != nil {
 			outputFile.Close()
