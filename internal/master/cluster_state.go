@@ -19,7 +19,7 @@ type ClusterState struct {
 
 	// Map 1: NodeID -> DataNode Info
 	// `json:"-"` ensures this data is never written to disk
-	DataNodes map[string]*DataNode `json:"data_nodes"`
+	DataNodes map[string]*DataNode `json:"-"`
 
 	// Map 2: File Name -> List of Chunk IDs
 	Files map[string][]string `json:"files"`
