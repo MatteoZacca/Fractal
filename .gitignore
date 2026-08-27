@@ -71,9 +71,6 @@ $RECYCLE.BIN/
 # ==========================================
 # Fractal
 # ==========================================
-# Ignore the NameNode's local memory state file
-namespace.json
-
 # Ignore the DataNodes' local hard drives
 data/
 
