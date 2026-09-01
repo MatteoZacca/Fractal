@@ -103,13 +103,22 @@ func (n *NameNode) GetClusterStatus(ctx context.Context, req *pb.ClusterStatusRe
 	var activeNodesCount int32
 	var diskUsage int64
 	var diskCapacity int64
+	var activeNodes []*pb.NodeStatus
 
 	for _, dataNode := range n.State.DataNodes {
-		if time.Since(dataNode.LastHeartbeat) < HeartbeatTimeout {
+		timeSincePing := time.Since(dataNode.LastHeartbeat)
+
+		if timeSincePing < HeartbeatTimeout {
 			activeNodesCount++
 			// Once load balancing is implemented
 			diskUsage += 0    // dataNode.DiskUsage
 			diskCapacity += 0 // dataNode.DiskCapacity
+			activeNodes = append(activeNodes, &pb.NodeStatus{
+				NodeId:        dataNode.NodeID,
+				Address:       dataNode.Address,
+				RackId:        dataNode.RackID,
+				LastHeartbeat: timeSincePing.Round(time.Second).String(),
+			})
 		}
 	}
 
@@ -117,6 +126,7 @@ func (n *NameNode) GetClusterStatus(ctx context.Context, req *pb.ClusterStatusRe
 		ActiveNodesCount: activeNodesCount,
 		DiskUsage:        diskUsage,
 		DiskCapacity:     diskCapacity,
+		ActiveNodes:      activeNodes,
 	}, nil
 }
 

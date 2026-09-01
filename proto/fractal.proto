@@ -84,17 +84,17 @@ message HeartbeatMsg {
 // CLIENT asks NAMENODE for listing files in namespace
 // ===================================================
 
-message FileInfo {
-    string file_name = 1;
-    int32 chunk_count = 2;
-}
-
 // Client -> NameNode
 message ListFilesRequest {}
 
 // NameNode -> Client
 message ListFilesResponse {
     repeated FileInfo files = 1;
+}
+
+message FileInfo {
+    string file_name = 1;
+    int32 chunk_count = 2;
 }
 
 // ===================================================
@@ -107,6 +107,14 @@ message ClusterStatusResponse {
     int32 active_nodes_count = 1;
     int64 disk_usage = 2;
     int64 disk_capacity = 3;
+    repeated NodeStatus active_nodes =4;
+}
+
+message NodeStatus {
+    string node_id = 1;
+    string address = 2;
+    string rack_id = 3;
+    string last_heartbeat = 4;
 }
 
 // ==========================================
