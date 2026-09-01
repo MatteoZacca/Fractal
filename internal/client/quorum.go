@@ -112,7 +112,7 @@ func evaluateReadQuorum(outcomes chan pingOutcome, totalNodes int, chunkID strin
 		}
 
 		if !res.exists {
-			log.Printf("%s is alive but missing chunk %s", res.dataNodeIP, chunkID)
+			log.Printf("%s is alive but missing %s", res.dataNodeIP, chunkID)
 			staleNodes = append(staleNodes, res.dataNodeIP)
 			continue
 		}
