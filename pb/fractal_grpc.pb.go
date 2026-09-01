@@ -22,6 +22,7 @@ const (
 	MasterService_CommitFile_FullMethodName       = "/fractal.MasterService/CommitFile"
 	MasterService_CreateFile_FullMethodName       = "/fractal.MasterService/CreateFile"
 	MasterService_DeleteFile_FullMethodName       = "/fractal.MasterService/DeleteFile"
+	MasterService_GetClusterStatus_FullMethodName = "/fractal.MasterService/GetClusterStatus"
 	MasterService_GetFileLocations_FullMethodName = "/fractal.MasterService/GetFileLocations"
 	MasterService_ListFiles_FullMethodName        = "/fractal.MasterService/ListFiles"
 	MasterService_SendHeartbeat_FullMethodName    = "/fractal.MasterService/SendHeartbeat"
@@ -37,6 +38,7 @@ type MasterServiceClient interface {
 	CommitFile(ctx context.Context, in *CommitFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*CreateFileResponse, error)
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*StandardResponse, error)
+	GetClusterStatus(ctx context.Context, in *ClusterStatusRequest, opts ...grpc.CallOption) (*ClusterStatusResponse, error)
 	GetFileLocations(ctx context.Context, in *GetFileRequest, opts ...grpc.CallOption) (*GetFileResponse, error)
 	ListFiles(ctx context.Context, in *ListFilesRequest, opts ...grpc.CallOption) (*ListFilesResponse, error)
 	SendHeartbeat(ctx context.Context, in *HeartbeatMsg, opts ...grpc.CallOption) (*StandardResponse, error)
@@ -75,6 +77,16 @@ func (c *masterServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StandardResponse)
 	err := c.cc.Invoke(ctx, MasterService_DeleteFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterServiceClient) GetClusterStatus(ctx context.Context, in *ClusterStatusRequest, opts ...grpc.CallOption) (*ClusterStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClusterStatusResponse)
+	err := c.cc.Invoke(ctx, MasterService_GetClusterStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +142,7 @@ type MasterServiceServer interface {
 	CommitFile(context.Context, *CommitFileRequest) (*StandardResponse, error)
 	CreateFile(context.Context, *CreateFileRequest) (*CreateFileResponse, error)
 	DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error)
+	GetClusterStatus(context.Context, *ClusterStatusRequest) (*ClusterStatusResponse, error)
 	GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error)
 	ListFiles(context.Context, *ListFilesRequest) (*ListFilesResponse, error)
 	SendHeartbeat(context.Context, *HeartbeatMsg) (*StandardResponse, error)
@@ -152,6 +165,9 @@ func (UnimplementedMasterServiceServer) CreateFile(context.Context, *CreateFileR
 }
 func (UnimplementedMasterServiceServer) DeleteFile(context.Context, *DeleteFileRequest) (*StandardResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFile not implemented")
+}
+func (UnimplementedMasterServiceServer) GetClusterStatus(context.Context, *ClusterStatusRequest) (*ClusterStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClusterStatus not implemented")
 }
 func (UnimplementedMasterServiceServer) GetFileLocations(context.Context, *GetFileRequest) (*GetFileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileLocations not implemented")
@@ -236,6 +252,24 @@ func _MasterService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterServiceServer).DeleteFile(ctx, req.(*DeleteFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterService_GetClusterStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClusterStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).GetClusterStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_GetClusterStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).GetClusterStatus(ctx, req.(*ClusterStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -330,6 +364,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteFile",
 			Handler:    _MasterService_DeleteFile_Handler,
+		},
+		{
+			MethodName: "GetClusterStatus",
+			Handler:    _MasterService_GetClusterStatus_Handler,
 		},
 		{
 			MethodName: "GetFileLocations",

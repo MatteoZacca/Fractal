@@ -84,17 +84,29 @@ message HeartbeatMsg {
 // CLIENT asks NAMENODE for listing files in namespace
 // ===================================================
 
-// Client -> NameNode
-message ListFilesRequest {}
-
 message FileInfo {
     string file_name = 1;
     int32 chunk_count = 2;
 }
 
+// Client -> NameNode
+message ListFilesRequest {}
+
 // NameNode -> Client
 message ListFilesResponse {
     repeated FileInfo files = 1;
+}
+
+// ===================================================
+// CLIENT asks NAMENODE for cluster status
+// ===================================================
+
+message ClusterStatusRequest {}
+
+message ClusterStatusResponse {
+    int32 active_nodes_count = 1;
+    int64 disk_usage = 2;
+    int64 disk_capacity = 3;
 }
 
 // ==========================================
@@ -126,6 +138,7 @@ service MasterService {
     rpc CommitFile(CommitFileRequest) returns (StandardResponse);
     rpc CreateFile(CreateFileRequest) returns (CreateFileResponse);
     rpc DeleteFile(DeleteFileRequest) returns (StandardResponse);
+    rpc GetClusterStatus(ClusterStatusRequest) returns (ClusterStatusResponse); 
     rpc GetFileLocations(GetFileRequest) returns (GetFileResponse);
     rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
     rpc SendHeartbeat(HeartbeatMsg) returns (StandardResponse);
