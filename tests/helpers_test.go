@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"testing"
@@ -13,7 +14,8 @@ import (
 )
 
 const (
-	HeartbeatInitializationDelay = 15 * time.Second
+	ClusterHealthPollingInterval = 1 * time.Second
+	FailSafeTimeout              = 45 * time.Second
 	LocalTestFilePath            = "../mock_files/150mb.mp4"
 	RemoteTestFilePath           = "150mb.mp4"
 )
@@ -43,7 +45,7 @@ func setupCluster(t *testing.T) {
 		runDockerCompose("down", "-v")
 	})
 
-	time.Sleep(HeartbeatInitializationDelay)
+	waitForClusterReady(t)
 }
 
 func uploadSimulation(t *testing.T) pb.MasterServiceClient {
@@ -59,4 +61,36 @@ func uploadSimulation(t *testing.T) pb.MasterServiceClient {
 	t.Cleanup(func() { masterConn.Close() })
 
 	return pb.NewMasterServiceClient(masterConn)
+}
+
+func waitForClusterReady(t *testing.T) {
+	t.Log("Waiting for 4 DataNodes to register heartbeats...")
+	// 45-second fail-safe timeout in case Docker gets stuck
+	ctx, cancel := context.WithTimeout(context.Background(), FailSafeTimeout)
+	defer cancel()
+
+	ticker := time.NewTicker(ClusterHealthPollingInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.Fatalf("FATAL: Cluster failed to initialize within FailSafeTimeout.")
+		case <-ticker.C:
+			masterConn, err := grpc.NewClient("localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				continue // NameNode isn't listening yet, try again
+			}
+
+			masterClient := pb.NewMasterServiceClient(masterConn)
+			res, err := masterClient.GetClusterStatus(context.Background(), &pb.ClusterStatusRequest{})
+			masterConn.Close()
+
+			if err == nil && res.ActiveNodesCount == 4 {
+				t.Log("SUCCESS: All 4 DataNodes are online and ready!")
+				return
+			}
+		}
+	}
+
 }
