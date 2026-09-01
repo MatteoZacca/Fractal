@@ -18,6 +18,7 @@ type NameNode struct {
 }
 
 const (
+	HeartbeatTimeout  = 15 * time.Second
 	ReplicationFactor = 3
 )
 
@@ -66,6 +67,7 @@ func (n *NameNode) CreateFile(ctx context.Context, req *pb.CreateFileRequest) (*
 	}, nil
 }
 
+// CLient -> NameNode
 func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*pb.StandardResponse, error) {
 	n.State.namespaceMu.Lock()
 
@@ -94,6 +96,31 @@ func (n *NameNode) DeleteFile(ctx context.Context, req *pb.DeleteFileRequest) (*
 }
 
 // Client -> NameNode
+func (n *NameNode) GetClusterStatus(ctx context.Context, req *pb.ClusterStatusRequest) (*pb.ClusterStatusResponse, error) {
+	n.State.dataNodeMu.RLock()
+	defer n.State.dataNodeMu.RUnlock()
+
+	var activeNodesCount int32
+	var diskUsage int64
+	var diskCapacity int64
+
+	for _, dataNode := range n.State.DataNodes {
+		if time.Since(dataNode.LastHeartbeat) < HeartbeatTimeout {
+			activeNodesCount++
+			// Once load balancing is implemented
+			diskUsage += 0    // dataNode.DiskUsage
+			diskCapacity += 0 // dataNode.DiskCapacity
+		}
+	}
+
+	return &pb.ClusterStatusResponse{
+		ActiveNodesCount: activeNodesCount,
+		DiskUsage:        diskUsage,
+		DiskCapacity:     diskCapacity,
+	}, nil
+}
+
+// Client -> NameNode
 func (n *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest) (*pb.GetFileResponse, error) {
 	n.State.namespaceMu.RLock()
 	defer n.State.namespaceMu.RUnlock()
@@ -113,7 +140,7 @@ func (n *NameNode) GetFileLocations(ctx context.Context, req *pb.GetFileRequest)
 	return &pb.GetFileResponse{ChunkLocations: responseMap}, nil
 }
 
-// Client <-> NameNode
+// Client -> NameNode
 func (n *NameNode) ListFiles(ctx context.Context, req *pb.ListFilesRequest) (*pb.ListFilesResponse, error) {
 	n.State.namespaceMu.RLock()
 	defer n.State.namespaceMu.RUnlock()
