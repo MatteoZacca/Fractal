@@ -45,11 +45,27 @@ To get the most out of Fractal, you can install it as a native, globally accessi
 
 ---
 
+### 🍎🐧 For Mac / Linux Users 
+
+Open your terminal in the root of the project and run the build script:
+```bash
+cd scripts ; make
+```
+
+*(You may be prompted for your system password to allow `sudo` to place the binary in `/usr/local/bin`.)*
+This compiles the Go code and safely moves the `fractal` binary into your system's permanent `/usr/local/bin` folder.
+
+Verify the installation by typing:
+```bash
+fractal --help
+```
+
+
 ### 🪟 For Windows Users
 
 Open your terminal in the root of the project and run the build script:
 ```cmd
-.\script\make
+.\scripts\make
 ```
 
 This compiles the Go code and safely places `fractal.exe` into a permanent `C:\Fractal` folder.
