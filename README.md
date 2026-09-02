@@ -5,6 +5,7 @@
 </div>
 
 
+<br> </br>
 ## Generating Random Data
 
 If you want to test the cluster's chunking and streaming performance before uploading your actual files, you can instantly generate massive dummy files directly from your terminal.
@@ -35,6 +36,7 @@ fsutil file createnew random-1gb.bin 1073741824
 - `1073741824`: the exact file size required in bytes -> because 1GB = 1024 MB = 1,048,576 KB = 1,073,741,824 bytes
 
 
+<br> </br>
 ## Global CLI Installation
 
 To get the most out of Fractal, you can install it as a native, globally accessible command on your system. This allows you to interact with the cluster from any folder on your computer without needing to use `go run`.
@@ -76,3 +78,31 @@ Close your current terminal and open a new one. Verify the installation by typin
 ```cmd
 fractal --help
 ```
+
+
+<br> </br>
+## 🚀 Running Fractal from Scratch
+
+1. **Start Docker Engine:** Ensure Docker Desktop or the background Docker daemon is actively running on your machine.
+2. **Launch the Cluster:** Open your terminal in the root directory of the project and run the orchestration command to build and launch the NameNode and all DataNodes in detached mode:
+   ```bash
+   docker-compose up --build -d
+   ```
+3. **Verify and Run Commands:** Wait a few seconds for the virtual bridge network to initialize and for the DataNodes to register their first heartbeats. Verify cluster health and start interacting with Fractal:
+    ```bash
+    fractal status
+    ```
+
+
+<br> </br>
+## Fractal commands
+
+| Command | Syntax | Description |
+| :--- | :--- | :--- |
+| **create** | `fractal create <path/to/local/file>` | Splits and streams a local file to the cluster as chunks. |
+| **read** | `fractal read <remote_filename>` | Reassembles and downloads a file from the cluster into the `downloads/` directory. |
+| **update** | `fractal update <path/to/local/file>` | Overwrites an existing remote file using an atomic metadata swap and cleans up stale chunks. |
+| **burn** | `fractal burn <remote_filename>` | Permanently deletes a file from the NameNode and purges all replica chunks across DataNodes. |
+| **list** | `fractal list` | Lists all files currently tracked in the cluster namespace along with chunk counts and health status. |
+| **status** | `fractal status` | Displays cluster health, active worker count, and individual DataNode addresses, racks, and heartbeat offsets. |
+| **help** | `fractal --help` | Displays usage instructions, available flags, and CLI documentation. |
